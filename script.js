@@ -1,10 +1,3 @@
-// 🛠️ 여기에 본인의 Firebase 설정 정보 입력하세요
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -18,33 +11,35 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-
-// 게시글 올리기 함수
-export async function submitPost() {
+// 📝 글 올리기
+function submitPost() {
   const input = document.getElementById("postInput");
   const content = input.value.trim();
   if (!content) return alert("글을 입력해주세요!");
 
-  await addDoc(collection(db, "posts"), {
+  db.collection("posts").add({
     content,
     createdAt: new Date()
+  }).then(() => {
+    input.value = "";
+  }).catch((error) => {
+    console.error("오류 발생:", error);
   });
-
-  input.value = "";
 }
 
-// 실시간 글 목록 표시
+// 📃 글 목록 실시간 표시
 const postList = document.getElementById("postList");
-const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
 
-onSnapshot(q, (snapshot) => {
-  postList.innerHTML = "";
-  snapshot.forEach((doc) => {
-    const div = document.createElement("div");
-    div.textContent = "• " + doc.data().content;
-    postList.appendChild(div);
+db.collection("posts")
+  .orderBy("createdAt", "desc")
+  .onSnapshot((snapshot) => {
+    postList.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const div = document.createElement("div");
+      div.textContent = "• " + doc.data().content;
+      postList.appendChild(div);
+    });
   });
-});
