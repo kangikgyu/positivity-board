@@ -1,14 +1,14 @@
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyALuw2_DPTYAo0xWVygQmObST956DYCnm0",
-  authDomain: "positivity-board-ig.firebaseapp.com",
-  projectId: "positivity-board-ig",
-  storageBucket: "positivity-board-ig.firebasestorage.app",
-  messagingSenderId: "456213289485",
-  appId: "1:456213289485:web:6da549c96b33cee7b15344",
-  measurementId: "G-7KVLW9PFDK"
-};
+ const firebaseConfig = {
+    apiKey: "AIzaSyALuw2_DPTYAo0xWVygQmObST956DYCnm0",
+    authDomain: "positivity-board-ig.firebaseapp.com",
+    projectId: "positivity-board-ig",
+    storageBucket: "positivity-board-ig.firebasestorage.app",
+    messagingSenderId: "456213289485",
+    appId: "1:456213289485:web:6da549c96b33cee7b15344",
+    measurementId: "G-7KVLW9PFDK"
+  };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
