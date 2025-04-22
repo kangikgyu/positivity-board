@@ -14,6 +14,25 @@
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// Firebase Auth 초기화
+firebase.auth().onAuthStateChanged((user) => {
+  const userInfo = document.getElementById("userInfo");
+  if (user) {
+    userInfo.textContent = `😊 ${user.displayName}님 로그인됨`;
+  } else {
+    userInfo.textContent = "로그인 안 됨";
+  }
+});
+
+function login() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider);
+}
+
+function logout() {
+  firebase.auth().signOut();
+}
+
 // 글 올리기
 function submitPost() {
   const input = document.getElementById("postInput");
