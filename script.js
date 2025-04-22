@@ -42,6 +42,7 @@ function submitPost() {
   db.collection("posts").add({
     content,
     createdAt: new Date()
+    uid: firebase.auth().currentUser.uid 
   }).then(() => {
     input.value = "";
   }).catch((error) => {
