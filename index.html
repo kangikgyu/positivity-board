@@ -11,6 +11,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <button onclick="login()">🔑 로그인</button>
+  <button onclick="logout()">🚪 로그아웃</button>
+  <div id="userInfo"></div>
   <div class="container">
     <h1>편하게 긍정 메시지를 나누는 따뜻한 게시판</h1>
     <textarea id="postInput" placeholder="여기에 고민이나 응원의 메시지를 써보세요..." rows="4"></textarea>
