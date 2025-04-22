@@ -9,7 +9,6 @@
     appId: "1:456213289485:web:6da549c96b33cee7b15344",
     measurementId: "G-7KVLW9PFDK"
   };
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -28,7 +27,6 @@ function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider);
 }
-
 function logout() {
   firebase.auth().signOut();
 }
@@ -63,3 +61,13 @@ db.collection("posts")
       postList.appendChild(div);
     });
   });
+
+if (firebase.auth().currentUser.uid === doc.data().uid) {
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "🗑 삭제";
+  delBtn.onclick = () => {
+    db.collection("posts").doc(doc.id).delete();
+  };
+  div.appendChild(delBtn);
+}
+
