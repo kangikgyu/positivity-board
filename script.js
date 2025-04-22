@@ -14,7 +14,7 @@
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 📝 글 올리기
+// 글 올리기
 function submitPost() {
   const input = document.getElementById("postInput");
   const content = input.value.trim();
@@ -26,11 +26,11 @@ function submitPost() {
   }).then(() => {
     input.value = "";
   }).catch((error) => {
-    console.error("오류 발생:", error);
+    console.error("글 저장 실패:", error);
   });
 }
 
-// 📃 글 목록 실시간 표시
+// 글 목록 불러오기
 const postList = document.getElementById("postList");
 
 db.collection("posts")
