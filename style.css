@@ -25,51 +25,21 @@ textarea {
 }
 
 button {
-  margin-top: 10px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   background-color: #4caf50;
   color: white;
   font-weight: bold;
   border: none;
   border-radius: 8px;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  min-width: 100px;
+  height: auto;
 }
 
 button:hover {
   background-color: #43a047;
-}
-
-#postList {
-  margin-top: 20px;
-}
-
-#postList div {
-  background-color: #e8f5e9;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-
-.auth-buttons {
-  margin-bottom: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  padding: 10px 16px;
-  background-color: #4caf50;
-  border: none;
-  color: white;
-  font-size: 0.95rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #45a049;
 }
 
 button:disabled {
@@ -77,6 +47,16 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* 🔁 로그인/로그아웃 버튼 그룹 */
+.auth-buttons {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* 로그인/로그아웃 버튼 개별 색상 */
 #loginBtn {
   background-color: #1976d2;
 }
@@ -93,4 +73,13 @@ button:disabled {
   background-color: #c62828;
 }
 
+#postList {
+  margin-top: 20px;
+}
 
+#postList div {
+  background-color: #e8f5e9;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
