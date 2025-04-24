@@ -50,44 +50,46 @@ firebase.auth().onAuthStateChanged((user) => {
   const userInfo = document.getElementById("userInfo");
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
+  const postList = document.getElementById("postList");
 
-  if (user) {
-    userInfo.textContent = `😊 ${user.displayName}님 환영합니다!`;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-  } else {
-    userInfo.textContent = "🔒 로그인 상태가 아닙니다.";
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
+  // 🛡️ 안전하게 null 체크하고 조작
+  if (userInfo) {
+    userInfo.textContent = user
+      ? `😊 ${user.displayName}님 환영합니다!`
+      : "🔒 로그인 상태가 아닙니다.";
   }
 
-  const postList = document.getElementById("postList");
-  db.collection("posts")
-    .orderBy("createdAt", "desc")
-    .onSnapshot((snapshot) => {
-      postList.innerHTML = "";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.textContent = `• ${data.content} (${data.author || "익명"})`;
+  if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
+  if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
 
-        // 삭제 버튼 – 본인 글만
-        if (user && user.uid === data.uid) {
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "🗑 삭제";
-          delBtn.classList.add("delete-btn");
-          delBtn.onclick = () => {
-            const confirmDelete = confirm("정말로 삭제하시겠어요?");
-            if (confirmDelete) {
-              db.collection("posts").doc(doc.id).delete();
-            }
-          };
-          div.appendChild(delBtn);
-        }
+  if (postList) {
+    db.collection("posts")
+      .orderBy("createdAt", "desc")
+      .onSnapshot((snapshot) => {
+        postList.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.textContent = `• ${data.content} (${data.author || "익명"})`;
 
-        postList.appendChild(div);
+          // 삭제 버튼 – 본인 글만
+          if (user && user.uid === data.uid) {
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "🗑 삭제";
+            delBtn.classList.add("delete-btn");
+            delBtn.onclick = () => {
+              const confirmDelete = confirm("정말로 삭제하시겠어요?");
+              if (confirmDelete) {
+                db.collection("posts").doc(doc.id).delete();
+              }
+            };
+            div.appendChild(delBtn);
+          }
+
+          postList.appendChild(div);
+        });
       });
-    });
+  }
 });
 
 // ✅ HTML onclick과 연결될 수 있도록 전역 등록
