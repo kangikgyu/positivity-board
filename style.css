@@ -99,3 +99,48 @@ button:disabled {
   margin-bottom: 10px;
   border-radius: 8px;
 }
+
+/* 모바일 대응용 반응형 스타일 */
+@media screen and (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .auth-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .auth-buttons button {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .user-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-info img {
+    width: 48px;
+    height: 48px;
+  }
+
+  textarea {
+    font-size: 1rem;
+  }
+
+  button {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  #postList div {
+    font-size: 0.95rem;
+  }
+}
