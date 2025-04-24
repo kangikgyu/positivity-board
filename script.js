@@ -70,4 +70,3 @@ if (firebase.auth().currentUser.uid === doc.data().uid) {
   };
   div.appendChild(delBtn);
 }
-
