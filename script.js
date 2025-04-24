@@ -53,11 +53,17 @@ firebase.auth().onAuthStateChanged((user) => {
   const postList = document.getElementById("postList");
 
   // 🛡️ 안전하게 null 체크하고 조작
-  if (userInfo) {
-    userInfo.textContent = user
-      ? `😊 ${user.displayName}님 환영합니다!`
-      : "🔒 로그인 상태가 아닙니다.";
+if (userInfo) {
+  if (user) {
+    userInfo.innerHTML = `
+      <img src="${user.photoURL || 'https://via.placeholder.com/36'}" alt="프로필" />
+      <span>😊 ${user.displayName || '사용자'}님 환영합니다!</span>
+    `;
+  } else {
+    userInfo.innerHTML = "🔒 로그인 상태가 아닙니다.";
   }
+}
+
 
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
