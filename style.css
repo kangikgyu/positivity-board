@@ -106,6 +106,13 @@ button:disabled {
   margin-bottom: 10px;
   border-radius: 8px;
 }
+#submitBtn {
+  background-color: #1976d2; /* 파란색 */
+}
+#submitBtn:hover {
+  background-color: #1565c0;
+}
+
 
 
 
