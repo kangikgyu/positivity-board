@@ -5,7 +5,6 @@ body {
   margin: 0;
   padding: 20px;
 }
-
 .container {
   max-width: 600px;
   margin: auto;
@@ -14,14 +13,12 @@ body {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
 }
-
 .user-info img {
   width: 36px;
   height: 36px;
@@ -29,8 +26,6 @@ body {
   object-fit: cover;
   border: 1px solid #ccc;
 }
-
-
 textarea {
   width: 100%;
   padding: 10px;
@@ -39,7 +34,6 @@ textarea {
   border-radius: 8px;
   resize: none;
 }
-
 button {
   padding: 10px 16px;
   background-color: #4caf50;
@@ -53,15 +47,33 @@ button {
   min-width: 100px;
   height: auto;
 }
-
 button:hover {
   background-color: #43a047;
 }
-
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
+.delete-btn {
+  background-color: #f44336; /* 빨간 계열 */
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  vertical-align: middle;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+
+
+
 
 /* 🔁 로그인/로그아웃 버튼 그룹 */
 .auth-buttons {
@@ -76,23 +88,18 @@ button:disabled {
 #loginBtn {
   background-color: #1976d2;
 }
-
 #loginBtn:hover {
   background-color: #1565c0;
 }
-
 #logoutBtn {
   background-color: #e53935;
 }
-
 #logoutBtn:hover {
   background-color: #c62828;
 }
-
 #postList {
   margin-top: 20px;
 }
-
 #postList div {
   background-color: #e8f5e9;
   padding: 10px;
@@ -100,47 +107,49 @@ button:disabled {
   border-radius: 8px;
 }
 
+
+
+
+
+
+
+
 /* 모바일 대응용 반응형 스타일 */
 @media screen and (max-width: 600px) {
   body {
     padding: 10px;
   }
-
   .container {
     padding: 15px;
     border-radius: 8px;
   }
-
   .auth-buttons {
     flex-direction: column;
     gap: 8px;
   }
-
   .auth-buttons button {
     width: 100%;
     font-size: 1rem;
   }
-
   .user-info {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .user-info img {
     width: 48px;
     height: 48px;
   }
-
   textarea {
     font-size: 1rem;
   }
-
   button {
     width: 100%;
     font-size: 1rem;
   }
-
   #postList div {
     font-size: 0.95rem;
   }
 }
+
+
+
