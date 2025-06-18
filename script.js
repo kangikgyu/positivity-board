@@ -36,8 +36,7 @@ function submitPost() {
   db.collection("posts").add({
     content,
     createdAt: new Date(),
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user.uid
   }).then(() => {
     input.value = "";
   }).catch((error) => {
@@ -76,7 +75,7 @@ if (userInfo) {
         snapshot.forEach((doc) => {
           const data = doc.data();
           const div = document.createElement("div");
-          div.textContent = `• ${data.content} (${data.author || "익명"})`;
+          div.textContent = `• ${data.content}`;
 
           // 삭제 버튼 – 본인 글만
           if (user && user.uid === data.uid) {
