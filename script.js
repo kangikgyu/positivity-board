@@ -75,7 +75,10 @@ if (userInfo) {
         snapshot.forEach((doc) => {
           const data = doc.data();
           const div = document.createElement("div");
-          div.textContent = `• ${data.content}`;
+          let text = data.content;
+          // 이전 데이터에 이름이 포함되어 있을 수 있으므로 " (이름)" 패턴 제거
+          text = text.replace(/\s*\([^)]*\)\s*$/, "");
+          div.textContent = `• ${text}`;
 
           // 삭제 버튼 – 본인 글만
           if (user && user.uid === data.uid) {
