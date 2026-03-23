@@ -5,20 +5,23 @@ body {
   margin: 0;
   padding: 20px;
 }
+
 .container {
-  max-width: 600px;
+  max-width: 760px;
   margin: auto;
   background: white;
-  padding: 20px;
+  padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
 }
+
 .user-info img {
   width: 36px;
   height: 36px;
@@ -26,14 +29,48 @@ body {
   object-fit: cover;
   border: 1px solid #ccc;
 }
+
+.calculator-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-description,
+.interest-summary {
+  color: #5f6368;
+  line-height: 1.6;
+}
+
+.calculator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.field input,
+.field select,
 textarea {
   width: 100%;
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
+  box-sizing: border-box;
+}
+
+textarea {
   resize: none;
 }
+
 button {
   padding: 10px 16px;
   background-color: #4caf50;
@@ -47,15 +84,51 @@ button {
   min-width: 100px;
   height: auto;
 }
+
 button:hover {
   background-color: #43a047;
 }
+
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+.calculator-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.results-card {
+  background: linear-gradient(135deg, #eef7ff, #f5fff7);
+  border: 1px solid #d5e7da;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.result-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.result-list div {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.result-label {
+  display: block;
+  font-size: 0.92rem;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+
 .delete-btn {
-  background-color: #f44336; /* 빨간 계열 */
+  background-color: #f44336;
   color: white;
   font-size: 0.8rem;
   padding: 4px 10px;
@@ -71,11 +144,6 @@ button:disabled {
   background-color: #d32f2f;
 }
 
-
-
-
-
-/* 🔁 로그인/로그아웃 버튼 그룹 */
 .auth-buttons {
   margin-bottom: 15px;
   display: flex;
@@ -84,79 +152,84 @@ button:disabled {
   justify-content: flex-start;
 }
 
-/* 로그인/로그아웃 버튼 개별 색상 */
 #loginBtn {
   background-color: #1976d2;
 }
+
 #loginBtn:hover {
   background-color: #1565c0;
 }
+
 #logoutBtn {
   background-color: #e53935;
 }
+
 #logoutBtn:hover {
   background-color: #c62828;
 }
+
 #postList {
   margin-top: 20px;
 }
+
 #postList div {
   background-color: #e8f5e9;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 8px;
 }
-#submitBtn {
-  background-color: #1976d2; /* 파란색 */
+
+#submitBtn,
+#calculateBtn {
+  background-color: #1976d2;
 }
-#submitBtn:hover {
+
+#submitBtn:hover,
+#calculateBtn:hover {
   background-color: #1565c0;
 }
 
-
-
-
-
-
-
-
-
-/* 모바일 대응용 반응형 스타일 */
 @media screen and (max-width: 600px) {
   body {
     padding: 10px;
   }
+
   .container {
     padding: 15px;
     border-radius: 8px;
   }
-  .auth-buttons {
+
+  .result-list,
+  .calculator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-buttons,
+  .calculator-actions {
     flex-direction: column;
+  }
+
+  .auth-buttons {
     gap: 8px;
   }
-  .auth-buttons button {
-    width: 100%;
-    font-size: 1rem;
-  }
-  .user-info {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .user-info img {
-    width: 48px;
-    height: 48px;
-  }
-  textarea {
-    font-size: 1rem;
-  }
+
+  .auth-buttons button,
   button {
     width: 100%;
     font-size: 1rem;
   }
+
+  .user-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-info img {
+    width: 48px;
+    height: 48px;
+  }
+
   #postList div {
     font-size: 0.95rem;
   }
 }
-
-
-

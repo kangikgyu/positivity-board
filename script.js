@@ -13,6 +13,40 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+function formatCurrency(value) {
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+// ✅ 이자 계산기 함수
+function calculateInterest() {
+  const principal = Number(document.getElementById("principalInput")?.value || 0);
+  const annualRate = Number(document.getElementById("rateInput")?.value || 0) / 100;
+  const years = Number(document.getElementById("yearsInput")?.value || 0);
+  const compoundFrequency = Number(document.getElementById("compoundFrequencyInput")?.value || 1);
+
+  if (principal <= 0 || annualRate < 0 || years <= 0 || compoundFrequency <= 0) {
+    alert("원금과 기간은 0보다 커야 하고, 이자율과 복리 횟수는 0 이상이어야 합니다.");
+    return;
+  }
+
+  const simpleInterest = principal * annualRate * years;
+  const simpleTotal = principal + simpleInterest;
+  const compoundTotal = principal * Math.pow(1 + annualRate / compoundFrequency, compoundFrequency * years);
+  const compoundInterest = compoundTotal - principal;
+
+  document.getElementById("simpleInterestResult").textContent = formatCurrency(simpleInterest);
+  document.getElementById("simpleTotalResult").textContent = formatCurrency(simpleTotal);
+  document.getElementById("compoundInterestResult").textContent = formatCurrency(compoundInterest);
+  document.getElementById("compoundTotalResult").textContent = formatCurrency(compoundTotal);
+  document.getElementById("interestSummary").textContent = `${years}년 동안 연 ${(
+    annualRate * 100
+  ).toFixed(2)}% 기준으로 복리 만기 금액은 ${formatCurrency(compoundTotal)}입니다.`;
+}
+
 // ✅ 로그인 함수
 function login() {
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -52,18 +86,16 @@ firebase.auth().onAuthStateChanged((user) => {
   const logoutBtn = document.getElementById("logoutBtn");
   const postList = document.getElementById("postList");
 
-  // 🛡️ 안전하게 null 체크하고 조작
-if (userInfo) {
-  if (user) {
-    userInfo.innerHTML = `
-      <img src="${user.photoURL || 'https://via.placeholder.com/36'}" alt="프로필" />
-      <span>😊 ${user.displayName || '사용자'}님 환영합니다!</span>
-    `;
-  } else {
-    userInfo.innerHTML = "🔒 로그인 상태가 아닙니다.";
+  if (userInfo) {
+    if (user) {
+      userInfo.innerHTML = `
+        <img src="${user.photoURL || "https://via.placeholder.com/36"}" alt="프로필" />
+        <span>😊 ${user.displayName || "사용자"}님 환영합니다!</span>
+      `;
+    } else {
+      userInfo.innerHTML = "🔒 로그인 상태가 아닙니다.";
+    }
   }
-}
-
 
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
@@ -78,7 +110,6 @@ if (userInfo) {
           const div = document.createElement("div");
           div.textContent = `• ${data.content} (${data.author || "익명"})`;
 
-          // 삭제 버튼 – 본인 글만
           if (user && user.uid === data.uid) {
             const delBtn = document.createElement("button");
             delBtn.textContent = "🗑 삭제";
@@ -98,7 +129,12 @@ if (userInfo) {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  calculateInterest();
+});
+
 // ✅ HTML onclick과 연결될 수 있도록 전역 등록
 window.login = login;
 window.logout = logout;
 window.submitPost = submitPost;
+window.calculateInterest = calculateInterest;
