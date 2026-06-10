@@ -7,7 +7,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return signedIn()
-        && request.auth.token.email in ['theboy96@naver.com'];
+        && request.auth.token.email in ['fhldid00@gmail.com'];
     }
 
     function isOwner() {
