@@ -1,4 +1,4 @@
-const ADMIN_EMAILS = ["theboy96@naver.com"];
+const ADMIN_EMAILS = ["fhldid00@gmail.com"];
 
 const firebaseConfig = {
   apiKey: "AIzaSyALuw2_DPTYAo0xWVygQmObST956DYCnm0",
