@@ -1,3 +1,5 @@
+const ADMIN_EMAILS = ["theboy96@naver.com"];
+
 const firebaseConfig = {
   apiKey: "AIzaSyALuw2_DPTYAo0xWVygQmObST956DYCnm0",
   authDomain: "positivity-board-ig.firebaseapp.com",
@@ -16,6 +18,14 @@ let unsubscribeComments = [];
 let currentUser = null;
 let openPostId = null;
 let latestPosts = [];
+
+function isAdmin(user = currentUser) {
+  return !!user && ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+}
+
+function canManageDoc(data, user = currentUser) {
+  return !!user && (data.uid === user.uid || isAdmin(user));
+}
 
 function formatDate(value) {
   if (!value) return "방금 전";
@@ -38,7 +48,7 @@ function getPostTitle(data) {
 
 function getFriendlyError(error) {
   if (error && error.code === "permission-denied") {
-    return "Firestore 보안 규칙 때문에 막혔습니다. Firebase Console에서 posts와 comments의 작성/삭제 권한을 열어주세요.";
+    return "Firestore 보안 규칙 때문에 막혔습니다. Firebase Console에서 관리자 이메일과 작성/수정/삭제 권한을 확인해주세요.";
   }
 
   return "처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
@@ -113,12 +123,30 @@ function submitComment(postId) {
   db.collection("posts").doc(postId).collection("comments").add({
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: null,
     uid: user.uid,
     author: user.displayName || "익명"
   }).then(() => {
     input.value = "";
   }).catch((error) => {
     console.error("댓글 저장 실패:", error);
+    alert(getFriendlyError(error));
+  });
+}
+
+function updateComment(postId, commentId, content) {
+  const user = firebase.auth().currentUser;
+  if (!user) return alert("로그인 후 댓글을 수정할 수 있습니다.");
+  if (!content.trim()) return alert("댓글 내용을 입력해주세요.");
+
+  const commentRef = db.collection("posts").doc(postId).collection("comments").doc(commentId);
+
+  commentRef.update({
+    content: content.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    editedBy: user.email || user.uid
+  }).catch((error) => {
+    console.error("댓글 수정 실패:", error);
     alert(getFriendlyError(error));
   });
 }
@@ -145,8 +173,8 @@ function deletePost(postId) {
       if (!doc.exists) throw new Error("이미 삭제된 글입니다.");
 
       const data = doc.data();
-      if (data.uid !== user.uid) {
-        alert("작성자 본인만 글을 삭제할 수 있습니다.");
+      if (!canManageDoc(data, user)) {
+        alert("작성자 또는 관리자만 글을 삭제할 수 있습니다.");
         return null;
       }
 
@@ -161,6 +189,36 @@ function deletePost(postId) {
 function togglePostDetail(postId) {
   openPostId = openPostId === postId ? null : postId;
   renderBoard(currentUser);
+}
+
+function renderCommentEditForm(postId, commentId, comment, item) {
+  item.innerHTML = "";
+
+  const form = document.createElement("div");
+  form.className = "comment-edit-form";
+
+  const textarea = document.createElement("textarea");
+  textarea.value = comment.content || "";
+  textarea.rows = 3;
+
+  const actions = document.createElement("div");
+  actions.className = "comment-edit-actions";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent = "취소";
+  cancelBtn.className = "cancel-edit-btn";
+  cancelBtn.onclick = () => renderBoard(currentUser);
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "저장";
+  saveBtn.onclick = () => updateComment(postId, commentId, textarea.value);
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(saveBtn);
+  form.appendChild(textarea);
+  form.appendChild(actions);
+  item.appendChild(form);
+  textarea.focus();
 }
 
 function renderComments(postId, commentsBox, user) {
@@ -184,7 +242,7 @@ function renderComments(postId, commentsBox, user) {
 
         const meta = document.createElement("div");
         meta.className = "comment-meta";
-        meta.textContent = `${comment.author || "익명"} · ${formatDate(comment.createdAt)}`;
+        meta.textContent = `${comment.author || "익명"} · ${formatDate(comment.createdAt)}${comment.updatedAt ? " · 수정됨" : ""}`;
 
         const content = document.createElement("p");
         content.className = "comment-content";
@@ -193,7 +251,13 @@ function renderComments(postId, commentsBox, user) {
         item.appendChild(meta);
         item.appendChild(content);
 
-        if (user && user.uid === comment.uid) {
+        if (canManageDoc(comment, user)) {
+          const editBtn = document.createElement("button");
+          editBtn.textContent = "수정";
+          editBtn.classList.add("text-btn");
+          editBtn.onclick = () => renderCommentEditForm(postId, commentDoc.id, comment, item);
+          item.appendChild(editBtn);
+
           const delBtn = document.createElement("button");
           delBtn.textContent = "삭제";
           delBtn.classList.add("text-btn", "danger-text");
@@ -258,7 +322,7 @@ function renderPostRow(post, index, tableBody) {
     content.textContent = data.content || "내용이 없습니다.";
     detail.appendChild(content);
 
-    if (currentUser && currentUser.uid === data.uid) {
+    if (canManageDoc(data, currentUser)) {
       const delBtn = document.createElement("button");
       delBtn.textContent = "글 삭제";
       delBtn.classList.add("delete-btn");
@@ -367,7 +431,7 @@ firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       userInfo.innerHTML = `
         <img src="${user.photoURL || 'https://via.placeholder.com/36'}" alt="프로필" />
-        <span>${user.displayName || '사용자'}님</span>
+        <span>${user.displayName || '사용자'}님${isAdmin(user) ? '<b class="admin-badge">관리자</b>' : ''}</span>
       `;
     } else {
       userInfo.innerHTML = "로그인이 필요합니다.";
