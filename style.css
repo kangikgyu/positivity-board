@@ -5,20 +5,23 @@ body {
   margin: 0;
   padding: 20px;
 }
+
 .container {
-  max-width: 600px;
+  max-width: 680px;
   margin: auto;
   background: white;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
+
 .user-info {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 15px;
 }
+
 .user-info img {
   width: 36px;
   height: 36px;
@@ -26,14 +29,17 @@ body {
   object-fit: cover;
   border: 1px solid #ccc;
 }
+
 textarea {
+  box-sizing: border-box;
   width: 100%;
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
-  resize: none;
+  resize: vertical;
 }
+
 button {
   padding: 10px 16px;
   background-color: #4caf50;
@@ -47,35 +53,32 @@ button {
   min-width: 100px;
   height: auto;
 }
+
 button:hover {
   background-color: #43a047;
 }
+
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
+
 .delete-btn {
-  background-color: #f44336; /* 빨간 계열 */
+  background-color: #f44336;
   color: white;
   font-size: 0.8rem;
   padding: 4px 10px;
   border: none;
   border-radius: 6px;
-  margin-left: 10px;
+  margin-top: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  vertical-align: middle;
 }
 
 .delete-btn:hover {
   background-color: #d32f2f;
 }
 
-
-
-
-
-/* 🔁 로그인/로그아웃 버튼 그룹 */
 .auth-buttons {
   margin-bottom: 15px;
   display: flex;
@@ -84,79 +87,167 @@ button:disabled {
   justify-content: flex-start;
 }
 
-/* 로그인/로그아웃 버튼 개별 색상 */
 #loginBtn {
   background-color: #1976d2;
 }
+
 #loginBtn:hover {
   background-color: #1565c0;
 }
+
 #logoutBtn {
   background-color: #e53935;
 }
+
 #logoutBtn:hover {
   background-color: #c62828;
 }
-#postList {
-  margin-top: 20px;
-}
-#postList div {
-  background-color: #e8f5e9;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
+
 #submitBtn {
-  background-color: #1976d2; /* 파란색 */
+  background-color: #1976d2;
+  margin-top: 8px;
 }
+
 #submitBtn:hover {
   background-color: #1565c0;
 }
 
+#postList {
+  margin-top: 20px;
+}
 
+.post-card {
+  background-color: #e8f5e9;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+}
 
+.post-body {
+  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+  padding-bottom: 12px;
+}
 
+.post-content {
+  margin: 0 0 8px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
 
+.post-meta,
+.comment-meta {
+  color: #607d66;
+  font-size: 0.85rem;
+}
 
+.comments-section {
+  margin-top: 12px;
+}
 
+.comments-section h3 {
+  color: #2e7d32;
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
 
+.comments-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
 
-/* 모바일 대응용 반응형 스타일 */
+.comment-item {
+  background-color: white;
+  border-left: 4px solid #81c784;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.comment-content {
+  margin: 6px 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.comment-form {
+  display: grid;
+  gap: 8px;
+}
+
+.comment-form button {
+  justify-self: end;
+  min-width: 96px;
+  padding: 8px 12px;
+  background-color: #43a047;
+}
+
+.comment-form button:hover {
+  background-color: #388e3c;
+}
+
+.comment-delete-btn {
+  background-color: #ef5350;
+  font-size: 0.75rem;
+  min-width: auto;
+  padding: 4px 8px;
+  margin-top: 6px;
+}
+
+.comment-delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.empty-posts,
+.empty-comments {
+  color: #6b7280;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
 @media screen and (max-width: 600px) {
   body {
     padding: 10px;
   }
+
   .container {
     padding: 15px;
     border-radius: 8px;
   }
+
   .auth-buttons {
     flex-direction: column;
     gap: 8px;
   }
+
   .auth-buttons button {
     width: 100%;
     font-size: 1rem;
   }
+
   .user-info {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .user-info img {
     width: 48px;
     height: 48px;
   }
+
   textarea {
     font-size: 1rem;
   }
+
   button {
     width: 100%;
     font-size: 1rem;
   }
-  #postList div {
+
+  .comment-form button {
+    justify-self: stretch;
+  }
+
+  .post-card {
     font-size: 0.95rem;
   }
 }
-
-
-
