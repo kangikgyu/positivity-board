@@ -15,14 +15,15 @@ let unsubscribePosts = null;
 let unsubscribeComments = [];
 let currentUser = null;
 let openPostId = null;
+let latestPosts = [];
 
 function formatDate(value) {
   if (!value) return "방금 전";
 
   const date = value.toDate ? value.toDate() : new Date(value);
   return date.toLocaleString("ko-KR", {
-    month: "short",
-    day: "numeric",
+    month: "2-digit",
+    day: "2-digit",
     hour: "2-digit",
     minute: "2-digit"
   });
@@ -32,7 +33,7 @@ function getPostTitle(data) {
   if (data.title && data.title.trim()) return data.title.trim();
 
   const firstLine = (data.content || "제목 없는 글").split("\n")[0].trim();
-  return firstLine.length > 36 ? `${firstLine.slice(0, 36)}...` : firstLine;
+  return firstLine.length > 40 ? `${firstLine.slice(0, 40)}...` : firstLine;
 }
 
 function getFriendlyError(error) {
@@ -159,7 +160,7 @@ function deletePost(postId) {
 
 function togglePostDetail(postId) {
   openPostId = openPostId === postId ? null : postId;
-  startPostListener(currentUser);
+  renderBoard(currentUser);
 }
 
 function renderComments(postId, commentsBox, user) {
@@ -194,7 +195,7 @@ function renderComments(postId, commentsBox, user) {
 
         if (user && user.uid === comment.uid) {
           const delBtn = document.createElement("button");
-          delBtn.textContent = "댓글 삭제";
+          delBtn.textContent = "삭제";
           delBtn.classList.add("text-btn", "danger-text");
           delBtn.onclick = () => deleteComment(postId, commentDoc.id);
           item.appendChild(delBtn);
@@ -210,39 +211,45 @@ function renderComments(postId, commentsBox, user) {
   unsubscribeComments.push(unsubscribe);
 }
 
-function renderPost(doc, user, postList) {
-  const data = doc.data();
-  const postId = doc.id;
-  const article = document.createElement("article");
-  article.className = "post-card";
+function renderPostRow(post, index, tableBody) {
+  const { id: postId, data } = post;
+  const row = document.createElement("tr");
+  row.className = openPostId === postId ? "post-row is-open" : "post-row";
 
-  const summary = document.createElement("button");
-  summary.className = "post-summary";
-  summary.onclick = () => togglePostDetail(postId);
+  const numberCell = document.createElement("td");
+  numberCell.className = "col-number";
+  numberCell.textContent = latestPosts.length - index;
 
-  const titleWrap = document.createElement("span");
-  titleWrap.className = "post-title-wrap";
+  const titleCell = document.createElement("td");
+  titleCell.className = "col-title";
 
-  const title = document.createElement("strong");
-  title.className = "post-title";
-  title.textContent = getPostTitle(data);
+  const titleButton = document.createElement("button");
+  titleButton.className = "board-title-btn";
+  titleButton.textContent = getPostTitle(data);
+  titleButton.onclick = () => togglePostDetail(postId);
+  titleCell.appendChild(titleButton);
 
-  const meta = document.createElement("span");
-  meta.className = "post-meta";
-  meta.textContent = `${data.author || "익명"} · ${formatDate(data.createdAt)}`;
+  const authorCell = document.createElement("td");
+  authorCell.className = "col-author";
+  authorCell.textContent = data.author || "익명";
 
-  titleWrap.appendChild(title);
-  titleWrap.appendChild(meta);
+  const dateCell = document.createElement("td");
+  dateCell.className = "col-date";
+  dateCell.textContent = formatDate(data.createdAt);
 
-  const affordance = document.createElement("span");
-  affordance.className = "post-affordance";
-  affordance.textContent = openPostId === postId ? "접기" : "열기";
-
-  summary.appendChild(titleWrap);
-  summary.appendChild(affordance);
-  article.appendChild(summary);
+  row.appendChild(numberCell);
+  row.appendChild(titleCell);
+  row.appendChild(authorCell);
+  row.appendChild(dateCell);
+  tableBody.appendChild(row);
 
   if (openPostId === postId) {
+    const detailRow = document.createElement("tr");
+    detailRow.className = "detail-row";
+
+    const detailCell = document.createElement("td");
+    detailCell.colSpan = 4;
+
     const detail = document.createElement("div");
     detail.className = "post-detail";
 
@@ -251,7 +258,7 @@ function renderPost(doc, user, postList) {
     content.textContent = data.content || "내용이 없습니다.";
     detail.appendChild(content);
 
-    if (user && user.uid === data.uid) {
+    if (currentUser && currentUser.uid === data.uid) {
       const delBtn = document.createElement("button");
       delBtn.textContent = "글 삭제";
       delBtn.classList.add("delete-btn");
@@ -274,12 +281,12 @@ function renderPost(doc, user, postList) {
     const input = document.createElement("textarea");
     input.id = `commentInput-${postId}`;
     input.rows = 2;
-    input.placeholder = user ? "따뜻한 댓글을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다.";
-    input.disabled = !user;
+    input.placeholder = currentUser ? "따뜻한 댓글을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다.";
+    input.disabled = !currentUser;
 
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "댓글 쓰기";
-    submitBtn.disabled = !user;
+    submitBtn.disabled = !currentUser;
     submitBtn.onclick = () => submitComment(postId);
 
     form.appendChild(input);
@@ -289,12 +296,45 @@ function renderPost(doc, user, postList) {
     commentsSection.appendChild(commentsBox);
     commentsSection.appendChild(form);
     detail.appendChild(commentsSection);
-    article.appendChild(detail);
+    detailCell.appendChild(detail);
+    detailRow.appendChild(detailCell);
+    tableBody.appendChild(detailRow);
 
-    renderComments(postId, commentsBox, user);
+    renderComments(postId, commentsBox, currentUser);
+  }
+}
+
+function renderBoard(user) {
+  const postList = document.getElementById("postList");
+  if (!postList) return;
+
+  clearCommentListeners();
+
+  if (latestPosts.length === 0) {
+    postList.innerHTML = "<p class='empty-posts'>아직 게시글이 없습니다. 첫 번째 긍정 메시지를 남겨보세요.</p>";
+    return;
   }
 
-  postList.appendChild(article);
+  const table = document.createElement("table");
+  table.className = "board-table";
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th class="col-number">번호</th>
+        <th class="col-title">제목</th>
+        <th class="col-author">작성자</th>
+        <th class="col-date">작성일</th>
+      </tr>
+    </thead>
+  `;
+
+  const tbody = document.createElement("tbody");
+  latestPosts.forEach((post, index) => renderPostRow(post, index, tbody));
+  table.appendChild(tbody);
+
+  postList.innerHTML = "";
+  postList.appendChild(table);
 }
 
 function startPostListener(user) {
@@ -306,16 +346,10 @@ function startPostListener(user) {
 
   unsubscribePosts = db.collection("posts")
     .orderBy("createdAt", "desc")
+    .limit(15)
     .onSnapshot((snapshot) => {
-      postList.innerHTML = "";
-      clearCommentListeners();
-
-      if (snapshot.empty) {
-        postList.innerHTML = "<p class='empty-posts'>아직 게시글이 없습니다. 첫 번째 긍정 메시지를 남겨보세요.</p>";
-        return;
-      }
-
-      snapshot.forEach((doc) => renderPost(doc, user, postList));
+      latestPosts = snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
+      renderBoard(user);
     }, (error) => {
       console.error("글 목록 불러오기 실패:", error);
       postList.innerHTML = `<p class="error-text">${getFriendlyError(error)}</p>`;
