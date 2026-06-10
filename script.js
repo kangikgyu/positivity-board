@@ -99,21 +99,29 @@ function deleteComment(postId, commentId) {
 }
 
 function deletePost(postId) {
+  const user = firebase.auth().currentUser;
+  if (!user) return alert("로그인 후 글을 삭제할 수 있습니다.");
+
   const confirmDelete = confirm("정말로 삭제하시겠어요?");
   if (!confirmDelete) return;
 
   const postRef = db.collection("posts").doc(postId);
 
-  postRef.collection("comments").get()
-    .then((snapshot) => {
-      const batch = db.batch();
-      snapshot.forEach((commentDoc) => batch.delete(commentDoc.ref));
-      batch.delete(postRef);
-      return batch.commit();
+  postRef.get()
+    .then((doc) => {
+      if (!doc.exists) throw new Error("이미 삭제된 글입니다.");
+
+      const data = doc.data();
+      if (data.uid !== user.uid) {
+        alert("작성자 본인만 글을 삭제할 수 있습니다.");
+        return null;
+      }
+
+      return postRef.delete();
     })
     .catch((error) => {
       console.error("글 삭제 실패:", error);
-      alert("글 삭제 중 문제가 발생했습니다.");
+      alert("글 삭제 중 문제가 발생했습니다. Firestore 보안 규칙에서 작성자 삭제 권한을 확인해주세요.");
     });
 }
 
