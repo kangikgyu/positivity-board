@@ -15,9 +15,9 @@
 
 .robot-card {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(260px, 420px);
+  grid-template-columns: minmax(240px, 340px) minmax(260px, 420px);
   gap: 22px;
-  width: min(840px, 100%);
+  width: min(880px, 100%);
   padding: 18px;
   border: 2px solid rgba(130, 178, 144, 0.9);
   border-radius: 18px;
@@ -27,7 +27,7 @@
 
 .robot-scene {
   position: relative;
-  min-height: 360px;
+  min-height: 420px;
   overflow: hidden;
   border-radius: 16px;
   background: radial-gradient(circle at 50% 18%, #fff9bc, transparent 24%), linear-gradient(180deg, #dbf7ef, #eef8ff);
@@ -36,7 +36,7 @@
 .word-stream {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
 }
 
@@ -62,39 +62,77 @@
   animation-delay: var(--delay);
 }
 
+.polished-scroll {
+  position: absolute;
+  left: 50%;
+  top: 238px;
+  z-index: 5;
+  width: 84px;
+  padding: 8px 10px;
+  border: 1px solid #cfb66a;
+  border-radius: 8px;
+  background: #fff7bf;
+  color: #87610d;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, 18px) scale(0.45);
+}
+
+.robot-polisher[data-state="opening"] .polished-scroll {
+  animation: scrollOut 0.9s ease 0.38s forwards;
+}
+
 .stone-robot {
   position: absolute;
   left: 50%;
-  bottom: 18px;
-  z-index: 1;
-  width: 190px;
-  height: 300px;
+  bottom: 16px;
+  z-index: 2;
+  width: 258px;
+  height: 370px;
   transform: translateX(-50%);
+  animation: robotIdle 3.6s ease-in-out infinite;
+}
+
+.robot-polisher[data-state="eating"] .stone-robot {
+  animation: robotChew 0.48s ease-in-out infinite;
+}
+
+.robot-part {
+  position: absolute;
+  border: 3px solid #4d5b40;
+  background: #9d9a73;
+  box-shadow: inset 0 -10px 0 rgba(50, 61, 45, 0.16);
 }
 
 .robot-antenna {
-  position: absolute;
   left: 50%;
   top: 0;
   width: 18px;
   height: 46px;
-  border: 2px solid #4c5a42;
   border-radius: 8px;
   background: linear-gradient(#9b9a72, #dbd49b);
   transform: translateX(-50%);
 }
 
 .robot-head {
-  position: absolute;
   left: 50%;
-  top: 32px;
-  width: 88px;
-  height: 70px;
-  border: 3px solid #4d5b40;
-  border-radius: 28px 28px 18px 18px;
+  top: 34px;
+  width: 92px;
+  height: 72px;
+  border-radius: 30px 30px 18px 18px;
   background: radial-gradient(circle at 30% 20%, #c8c39a, transparent 20%), #8f9168;
   transform: translateX(-50%);
-  box-shadow: inset 0 -8px 0 rgba(50, 61, 45, 0.22);
+  transform-origin: center bottom;
+}
+
+.robot-polisher[data-state="eating"] .robot-head {
+  animation: headNod 0.48s ease-in-out infinite;
+}
+
+.robot-polisher[data-state="opening"] .robot-head {
+  animation: headLookDown 1.2s ease forwards;
 }
 
 .robot-eye {
@@ -106,13 +144,14 @@
   border-radius: 50%;
   background: #f3ff5a;
   box-shadow: 0 0 12px #f3ff5a;
+  animation: eyePulse 1.8s ease-in-out infinite;
 }
 
-.robot-eye:first-child {
+.left-eye {
   left: 22px;
 }
 
-.robot-eye:nth-child(2) {
+.right-eye {
   right: 22px;
 }
 
@@ -127,64 +166,186 @@
   transform: translateX(-50%);
 }
 
-.robot-body {
-  position: absolute;
+.robot-polisher[data-state="eating"] .robot-mouth {
+  animation: mouthEat 0.32s ease-in-out infinite;
+}
+
+.robot-neck {
   left: 50%;
-  top: 104px;
-  width: 150px;
-  height: 142px;
-  border: 3px solid #4d5b40;
-  border-radius: 52px 52px 34px 34px;
+  top: 100px;
+  width: 54px;
+  height: 30px;
+  border-radius: 12px;
+  background: #6c7659;
+  transform: translateX(-50%);
+}
+
+.robot-body {
+  left: 50%;
+  top: 116px;
+  width: 160px;
+  height: 150px;
+  border-radius: 56px 56px 34px 34px;
   background: radial-gradient(circle at 34% 22%, #cbc49a, transparent 26%), #9d9a73;
   transform: translateX(-50%);
-  box-shadow: inset 0 -12px 0 rgba(50, 61, 45, 0.18);
 }
 
-.robot-body::before,
-.robot-body::after,
-.robot-head::before,
-.robot-arm::before {
-  content: "";
-  position: absolute;
+.robot-waist {
+  left: 50%;
+  top: 258px;
+  width: 102px;
+  height: 36px;
+  border-radius: 18px;
+  background: repeating-linear-gradient(0deg, #5f6c55, #5f6c55 6px, #87916b 7px, #87916b 12px);
+  transform: translateX(-50%);
+}
+
+.robot-hip {
+  left: 50%;
+  top: 288px;
+  width: 116px;
+  height: 46px;
+  border-radius: 30px 30px 20px 20px;
+  background: #8b8d67;
+  transform: translateX(-50%);
+}
+
+.shoulder {
+  top: 128px;
+  width: 52px;
+  height: 58px;
   border-radius: 50%;
-  background: rgba(63, 97, 34, 0.38);
+  background: #94916b;
 }
 
-.robot-body::before {
+.left-shoulder {
+  left: 18px;
+}
+
+.right-shoulder {
+  right: 18px;
+}
+
+.arm {
   width: 42px;
-  height: 9px;
-  left: 10px;
-  top: 24px;
-  transform: rotate(-16deg);
+  border-radius: 24px;
+  background: #918f69;
+  transform-origin: center top;
 }
 
-.robot-body::after {
-  width: 36px;
-  height: 8px;
-  right: 10px;
-  top: 42px;
-  transform: rotate(24deg);
+.upper-arm {
+  top: 174px;
+  height: 78px;
 }
 
-.robot-head::before {
-  width: 30px;
-  height: 7px;
-  left: 8px;
-  top: 8px;
+.lower-arm {
+  top: 240px;
+  height: 94px;
+}
+
+.left-upper-arm {
+  left: 16px;
+  transform: rotate(10deg);
+}
+
+.right-upper-arm {
+  right: 16px;
+  transform: rotate(-10deg);
+}
+
+.left-lower-arm {
+  left: 22px;
+  transform: rotate(-7deg);
+}
+
+.right-lower-arm {
+  right: 22px;
+  transform: rotate(7deg);
+}
+
+.robot-polisher[data-state="eating"] .left-upper-arm,
+.robot-polisher[data-state="eating"] .left-lower-arm {
+  animation: leftArmFeed 0.72s ease-in-out infinite;
+}
+
+.robot-polisher[data-state="eating"] .right-upper-arm,
+.robot-polisher[data-state="eating"] .right-lower-arm {
+  animation: rightArmFeed 0.72s ease-in-out infinite;
+}
+
+.hand {
+  top: 326px;
+  width: 44px;
+  height: 38px;
+  border-radius: 18px 18px 24px 24px;
+  background: #878866;
+}
+
+.left-hand {
+  left: 26px;
+  transform: rotate(18deg);
+}
+
+.right-hand {
+  right: 26px;
   transform: rotate(-18deg);
+}
+
+.leg {
+  width: 48px;
+  border-radius: 22px;
+  background: #918f69;
+}
+
+.left-thigh,
+.right-thigh {
+  top: 326px;
+  height: 74px;
+}
+
+.left-thigh {
+  left: 78px;
+}
+
+.right-thigh {
+  right: 78px;
+}
+
+.left-shin,
+.right-shin {
+  top: 394px;
+  height: 76px;
+  display: none;
+}
+
+.foot {
+  bottom: 0;
+  width: 68px;
+  height: 28px;
+  border-radius: 22px 22px 10px 10px;
+  background: #858662;
+}
+
+.left-foot {
+  left: 64px;
+}
+
+.right-foot {
+  right: 64px;
 }
 
 .robot-chest {
   position: absolute;
   left: 50%;
-  top: 42px;
-  width: 78px;
-  height: 62px;
+  top: 44px;
+  width: 82px;
+  height: 64px;
   overflow: hidden;
   border: 3px solid #526048;
   border-radius: 12px;
   background: #6b7357;
   transform: translateX(-50%);
+  perspective: 160px;
 }
 
 .robot-door {
@@ -230,32 +391,70 @@
   transform: scale(1);
 }
 
-.robot-arm {
+.moss,
+.stone-crack {
   position: absolute;
-  top: 126px;
-  width: 42px;
-  height: 128px;
-  border: 3px solid #4d5b40;
-  border-radius: 25px;
-  background: #918f69;
+  pointer-events: none;
 }
 
-.left-arm {
-  left: 0;
-  transform: rotate(8deg);
-}
-
-.right-arm {
-  right: 0;
-  transform: rotate(-8deg);
-}
-
-.robot-arm::before {
-  width: 28px;
+.moss {
+  width: 38px;
   height: 8px;
+  border-radius: 50%;
+  background: rgba(55, 102, 30, 0.55);
+  box-shadow: 8px 7px 0 rgba(66, 126, 37, 0.38), 17px 14px 0 rgba(66, 126, 37, 0.28);
+}
+
+.head-moss {
   left: 8px;
+  top: 8px;
+  transform: rotate(-18deg);
+}
+
+.shoulder-moss {
+  left: 8px;
+  top: 8px;
+}
+
+.arm-moss {
+  right: -5px;
+  top: 20px;
+  transform: rotate(22deg);
+}
+
+.arm-moss.long,
+.leg-moss.long {
+  height: 10px;
+  box-shadow: 4px 10px 0 rgba(66, 126, 37, 0.35), 6px 21px 0 rgba(66, 126, 37, 0.25);
+}
+
+.body-moss {
+  right: 12px;
+  top: 22px;
+  transform: rotate(18deg);
+}
+
+.leg-moss {
+  left: 8px;
+  top: 16px;
+}
+
+.stone-crack {
+  width: 42px;
+  height: 1px;
+  background: rgba(50, 61, 45, 0.38);
+}
+
+.crack-one {
+  left: 22px;
   top: 34px;
-  transform: rotate(-15deg);
+  transform: rotate(-18deg);
+}
+
+.crack-two {
+  right: 18px;
+  top: 82px;
+  transform: rotate(24deg);
 }
 
 .robot-copy {
@@ -327,11 +526,95 @@
   }
   72% {
     opacity: 1;
-    transform: translate(0, 118px) scale(0.72) rotate(10deg);
+    transform: translate(0, 112px) scale(0.72) rotate(10deg);
   }
   100% {
     opacity: 0;
-    transform: translate(0, 164px) scale(0.12) rotate(28deg);
+    transform: translate(0, 154px) scale(0.12) rotate(28deg);
+  }
+}
+
+@keyframes scrollOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 18px) scale(0.45);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -26px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -18px) scale(1);
+  }
+}
+
+@keyframes robotIdle {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+@keyframes robotChew {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) translateY(2px) scale(1.012);
+  }
+}
+
+@keyframes eyePulse {
+  0%, 100% {
+    box-shadow: 0 0 10px #f3ff5a;
+  }
+  50% {
+    box-shadow: 0 0 20px #f3ff5a;
+  }
+}
+
+@keyframes mouthEat {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 16px;
+  }
+}
+
+@keyframes headNod {
+  0%, 100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(4deg);
+  }
+}
+
+@keyframes headLookDown {
+  100% {
+    transform: translateX(-50%) rotate(7deg);
+  }
+}
+
+@keyframes leftArmFeed {
+  0%, 100% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(22deg) translate(7px, -8px);
+  }
+}
+
+@keyframes rightArmFeed {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(-22deg) translate(-7px, -8px);
   }
 }
 
@@ -343,7 +626,12 @@
   }
 
   .robot-scene {
-    min-height: 300px;
+    min-height: 360px;
+  }
+
+  .stone-robot {
+    transform: translateX(-50%) scale(0.9);
+    transform-origin: center bottom;
   }
 
   .robot-actions {
