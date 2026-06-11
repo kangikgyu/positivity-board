@@ -34,49 +34,13 @@ function ensureRobotOverlay() {
   overlay.innerHTML = `
     <div class="robot-card" role="dialog" aria-modal="true" aria-labelledby="robotTitle">
       <div class="robot-scene">
-        <div class="word-stream" id="wordStream"></div>
-        <div class="polished-scroll" id="polishedScroll" aria-hidden="true">따뜻한 말</div>
-        <div class="stone-robot" aria-hidden="true">
-          <div class="robot-part robot-antenna"></div>
-          <div class="robot-part robot-head">
-            <span class="robot-eye left-eye"></span>
-            <span class="robot-eye right-eye"></span>
-            <span class="robot-mouth"></span>
-            <span class="moss head-moss"></span>
-          </div>
-          <div class="robot-part robot-neck"></div>
-          <div class="robot-part shoulder left-shoulder"><span class="moss shoulder-moss"></span></div>
-          <div class="robot-part shoulder right-shoulder"><span class="moss shoulder-moss"></span></div>
-          <div class="robot-part arm upper-arm left-upper-arm"><span class="moss arm-moss"></span></div>
-          <div class="robot-part arm lower-arm left-lower-arm"><span class="moss arm-moss long"></span></div>
-          <div class="robot-part hand left-hand"></div>
-          <div class="robot-part arm upper-arm right-upper-arm"><span class="moss arm-moss"></span></div>
-          <div class="robot-part arm lower-arm right-lower-arm"><span class="moss arm-moss long"></span></div>
-          <div class="robot-part hand right-hand"></div>
-          <div class="robot-part robot-body">
-            <span class="stone-crack crack-one"></span>
-            <span class="stone-crack crack-two"></span>
-            <span class="moss body-moss"></span>
-            <div class="robot-chest">
-              <div class="robot-door left-door"></div>
-              <div class="robot-door right-door"></div>
-              <div class="robot-glow"></div>
-            </div>
-          </div>
-          <div class="robot-part robot-waist"></div>
-          <div class="robot-part robot-hip"></div>
-          <div class="robot-part leg left-thigh"><span class="moss leg-moss"></span></div>
-          <div class="robot-part leg right-thigh"><span class="moss leg-moss"></span></div>
-          <div class="robot-part leg left-shin"><span class="moss leg-moss long"></span></div>
-          <div class="robot-part leg right-shin"><span class="moss leg-moss long"></span></div>
-          <div class="robot-part foot left-foot"></div>
-          <div class="robot-part foot right-foot"></div>
-        </div>
+        <div class="robot-aura" aria-hidden="true"></div>
+        <div class="stone-robot image-robot" aria-hidden="true"></div>
       </div>
       <div class="robot-copy">
         <p class="eyebrow">kindness robot</p>
-        <h2 id="robotTitle">로봇이 문장을 다듬는 중</h2>
-        <p id="robotStatus">작성한 글자를 먹고, 더 부드러운 표현으로 정리하고 있어요.</p>
+        <h2 id="robotTitle">로봇이 문장을 정돈하는 중</h2>
+        <p id="robotStatus">잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.</p>
         <div class="robot-preview" id="robotPreview" hidden>
           <label for="polishedContent">다듬어진 문장</label>
           <textarea id="polishedContent" rows="7"></textarea>
@@ -92,22 +56,6 @@ function ensureRobotOverlay() {
 
   document.body.appendChild(overlay);
   return overlay;
-}
-
-function buildWordStream(text) {
-  const stream = document.getElementById("wordStream");
-  stream.innerHTML = "";
-
-  const words = text.split(/\s+/).filter(Boolean).slice(0, 18);
-  words.forEach((word, index) => {
-    const chip = document.createElement("span");
-    chip.className = "word-chip";
-    chip.textContent = word.length > 8 ? `${word.slice(0, 8)}...` : word;
-    chip.style.setProperty("--delay", `${index * 0.06}s`);
-    chip.style.setProperty("--x", `${(index % 6) * 22 - 54}px`);
-    chip.style.setProperty("--y", `${Math.floor(index / 6) * 20 - 36}px`);
-    stream.appendChild(chip);
-  });
 }
 
 function setRobotState(state) {
@@ -153,18 +101,16 @@ window.submitPost = function submitPostWithRobot() {
   overlay.hidden = false;
   preview.hidden = true;
   actions.hidden = true;
-  status.textContent = "작성한 글자를 먹고, 더 부드러운 표현으로 정리하고 있어요.";
-  buildWordStream(`${title} ${content}`);
-  setRobotState("eating");
+  status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
+  setRobotState("thinking");
 
   window.setTimeout(() => {
-    setRobotState("opening");
-    const polished = softlyPolishText(content);
-    textarea.value = polished;
-    status.textContent = "가슴의 뚜껑을 열고 다듬어진 문장을 꺼냈어요. 확인 후 게시해 주세요.";
+    setRobotState("ready");
+    textarea.value = softlyPolishText(content);
+    status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
     preview.hidden = false;
     actions.hidden = false;
-  }, 1900);
+  }, 1500);
 
   cancelBtn.onclick = closeRobotOverlay;
   confirmBtn.onclick = () => {
