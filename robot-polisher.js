@@ -35,22 +35,42 @@ function ensureRobotOverlay() {
     <div class="robot-card" role="dialog" aria-modal="true" aria-labelledby="robotTitle">
       <div class="robot-scene">
         <div class="word-stream" id="wordStream"></div>
+        <div class="polished-scroll" id="polishedScroll" aria-hidden="true">따뜻한 말</div>
         <div class="stone-robot" aria-hidden="true">
-          <div class="robot-antenna"></div>
-          <div class="robot-head">
-            <span class="robot-eye"></span>
-            <span class="robot-eye"></span>
+          <div class="robot-part robot-antenna"></div>
+          <div class="robot-part robot-head">
+            <span class="robot-eye left-eye"></span>
+            <span class="robot-eye right-eye"></span>
             <span class="robot-mouth"></span>
+            <span class="moss head-moss"></span>
           </div>
-          <div class="robot-body">
+          <div class="robot-part robot-neck"></div>
+          <div class="robot-part shoulder left-shoulder"><span class="moss shoulder-moss"></span></div>
+          <div class="robot-part shoulder right-shoulder"><span class="moss shoulder-moss"></span></div>
+          <div class="robot-part arm upper-arm left-upper-arm"><span class="moss arm-moss"></span></div>
+          <div class="robot-part arm lower-arm left-lower-arm"><span class="moss arm-moss long"></span></div>
+          <div class="robot-part hand left-hand"></div>
+          <div class="robot-part arm upper-arm right-upper-arm"><span class="moss arm-moss"></span></div>
+          <div class="robot-part arm lower-arm right-lower-arm"><span class="moss arm-moss long"></span></div>
+          <div class="robot-part hand right-hand"></div>
+          <div class="robot-part robot-body">
+            <span class="stone-crack crack-one"></span>
+            <span class="stone-crack crack-two"></span>
+            <span class="moss body-moss"></span>
             <div class="robot-chest">
               <div class="robot-door left-door"></div>
               <div class="robot-door right-door"></div>
               <div class="robot-glow"></div>
             </div>
           </div>
-          <div class="robot-arm left-arm"></div>
-          <div class="robot-arm right-arm"></div>
+          <div class="robot-part robot-waist"></div>
+          <div class="robot-part robot-hip"></div>
+          <div class="robot-part leg left-thigh"><span class="moss leg-moss"></span></div>
+          <div class="robot-part leg right-thigh"><span class="moss leg-moss"></span></div>
+          <div class="robot-part leg left-shin"><span class="moss leg-moss long"></span></div>
+          <div class="robot-part leg right-shin"><span class="moss leg-moss long"></span></div>
+          <div class="robot-part foot left-foot"></div>
+          <div class="robot-part foot right-foot"></div>
         </div>
       </div>
       <div class="robot-copy">
