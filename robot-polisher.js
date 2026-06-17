@@ -1,26 +1,15 @@
 const robotDb = firebase.firestore();
+const polishTextFunction = firebase.functions().httpsCallable("polishText");
 
-function softlyPolishText(text) {
-  let polished = text.trim();
+async function polishText(content) {
+  const result = await polishTextFunction({ content });
+  const polishedContent = result && result.data ? result.data.polishedContent : "";
 
-  const replacements = [
-    [/짜증나/gi, "속상한 마음이 들어"],
-    [/싫어/gi, "조금 어렵게 느껴져"],
-    [/왜 그래/gi, "어떤 마음인지 조금 더 듣고 싶어"],
-    [/그냥/gi, "조심스럽게"],
-    [/힘들어/gi, "요즘 마음이 조금 지쳐"],
-    [/못해/gi, "아직은 어렵지만 함께 해볼 수 있어"]
-  ];
-
-  replacements.forEach(([pattern, replacement]) => {
-    polished = polished.replace(pattern, replacement);
-  });
-
-  if (!/[.!?。！？]$/.test(polished)) {
-    polished += ".";
+  if (!polishedContent || !polishedContent.trim()) {
+    throw new Error("문장 다듬기 결과가 비어 있습니다.");
   }
 
-  return `조금 더 부드럽게 전해볼게요.\n\n${polished}\n\n읽는 사람의 마음도 함께 생각하며, 따뜻한 응원의 마음을 담아 전합니다.`;
+  return polishedContent.trim();
 }
 
 function ensureRobotOverlay() {
@@ -44,7 +33,7 @@ function ensureRobotOverlay() {
         <div class="robot-preview" id="robotPreview" hidden>
           <label for="polishedContent">다듬어진 문장</label>
           <textarea id="polishedContent" rows="7"></textarea>
-          <p class="robot-note">현재는 LLM 연결 전 임시 다듬기입니다. 서버 함수가 연결되면 이 자리에 실제 LLM 결과가 들어옵니다.</p>
+          <p class="robot-note">OpenAI가 원문의 의미를 유지하며 더 따뜻한 표현으로 다듬어줍니다.</p>
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
@@ -104,13 +93,22 @@ window.submitPost = function submitPostWithRobot() {
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
   setRobotState("thinking");
 
-  window.setTimeout(() => {
-    setRobotState("ready");
-    textarea.value = softlyPolishText(content);
-    status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
-    preview.hidden = false;
-    actions.hidden = false;
-  }, 1500);
+  polishText(content)
+    .then((polishedContent) => {
+      setRobotState("ready");
+      textarea.value = polishedContent;
+      status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
+      preview.hidden = false;
+      actions.hidden = false;
+    })
+    .catch((error) => {
+      console.error("문장 다듬기 실패:", error);
+      setRobotState("ready");
+      textarea.value = content;
+      status.textContent = "문장을 다듬지 못했어요. 원문으로 게시하거나 다시 시도해 주세요.";
+      preview.hidden = false;
+      actions.hidden = false;
+    });
 
   cancelBtn.onclick = closeRobotOverlay;
   confirmBtn.onclick = () => {
