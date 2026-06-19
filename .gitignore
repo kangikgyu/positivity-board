@@ -1,0 +1,14 @@
+.env
+.env.*
+.secret.local
+.secret.*.local
+functions/.env
+functions/.env.*
+functions/.secret.local
+functions/.secret.*.local
+node_modules/
+functions/node_modules/
+.firebase/
+.firebase-debug.log
+firestore-debug.log
+ui-debug.log
