@@ -34,6 +34,7 @@ function ensureRobotOverlay() {
           <label for="polishedContent">다듬어진 문장</label>
           <textarea id="polishedContent" rows="7"></textarea>
           <p class="robot-note">OpenAI가 원문의 의미를 유지하며 공감과 위로가 느껴지도록 다듬어줍니다.</p>
+
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
@@ -117,7 +118,9 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   confirmBtn.textContent = "이 문장으로 올리기";
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
   setRobotState("thinking");
+
   playRobotVideo();
+
 
   polishText(content)
     .then((polishedContent) => {
