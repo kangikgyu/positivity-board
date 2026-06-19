@@ -351,7 +351,7 @@ function renderPostRow(post, index, tableBody) {
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "댓글 쓰기";
     submitBtn.disabled = !currentUser;
-    submitBtn.onclick = () => submitComment(postId);
+    submitBtn.onclick = () => window.submitComment(postId);
 
     form.appendChild(input);
     form.appendChild(submitBtn);
