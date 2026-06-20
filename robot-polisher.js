@@ -34,7 +34,6 @@ function ensureRobotOverlay() {
           <label for="polishedContent">다듬어진 문장</label>
           <textarea id="polishedContent" rows="7"></textarea>
           <p class="robot-note">OpenAI가 원문의 의미를 유지하며 공감과 위로가 느껴지도록 다듬어줍니다.</p>
-
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
@@ -82,23 +81,32 @@ function closeRobotOverlay() {
   stopRobotVideo();
 }
 
-function savePolishedPost(title, content, user) {
+function getDefaultAuthorName(user) {
+  return user && user.displayName ? user.displayName : "익명";
+}
+
+function getAuthorNameFromInput(input, user) {
+  const author = input ? input.value.trim() : "";
+  return author || getDefaultAuthorName(user);
+}
+
+function savePolishedPost(title, content, user, author) {
   return robotDb.collection("posts").add({
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user)
   });
 }
 
-function savePolishedComment(postId, content, user) {
+function savePolishedComment(postId, content, user, author) {
   return robotDb.collection("posts").doc(postId).collection("comments").add({
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user)
   });
 }
 
@@ -118,9 +126,7 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   confirmBtn.textContent = "이 문장으로 올리기";
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
   setRobotState("thinking");
-
   playRobotVideo();
-
 
   polishText(content)
     .then((polishedContent) => {
@@ -164,21 +170,23 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
 
 window.submitPost = function submitPostWithRobot() {
   const titleInput = document.getElementById("postTitleInput");
+  const authorInput = document.getElementById("postAuthorInput");
   const contentInput = document.getElementById("postInput");
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const user = firebase.auth().currentUser;
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 글을 작성할 수 있습니다.");
   if (!title) return alert("제목을 입력해주세요.");
   if (!content) return alert("내용을 입력해주세요.");
 
   openRobotPolisher({
     content,
     savingText: "글 올리는 중",
-    onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user),
+    onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user, author),
     onSuccess: () => {
       titleInput.value = "";
+      if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
       contentInput.value = "";
       if (window.toggleWriteForm) window.toggleWriteForm(false);
     }
@@ -187,18 +195,20 @@ window.submitPost = function submitPostWithRobot() {
 
 window.submitComment = function submitCommentWithRobot(postId) {
   const user = firebase.auth().currentUser;
+  const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 댓글을 작성할 수 있습니다.");
   if (!content) return alert("댓글을 입력해주세요.");
 
   openRobotPolisher({
     content,
     savingText: "댓글 올리는 중",
-    onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user),
+    onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user, author),
     onSuccess: () => {
       input.value = "";
+      if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
     }
   });
 };
