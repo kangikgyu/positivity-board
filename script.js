@@ -27,6 +27,22 @@ function canManageDoc(data, user = currentUser) {
   return !!user && (data.uid === user.uid || isAdmin(user));
 }
 
+function getDefaultAuthorName(user = currentUser) {
+  return user && user.displayName ? user.displayName : "익명";
+}
+
+function getAuthorNameFromInput(input, user = currentUser) {
+  const author = input ? input.value.trim() : "";
+  return author || getDefaultAuthorName(user);
+}
+
+function syncPostAuthorInput(user = currentUser) {
+  const authorInput = document.getElementById("postAuthorInput");
+  if (!authorInput || authorInput.value.trim()) return;
+
+  authorInput.value = user && user.displayName ? user.displayName : "";
+}
+
 function formatDate(value) {
   if (!value) return "방금 전";
 
@@ -87,12 +103,13 @@ function toggleWriteForm(forceOpen) {
 
 function submitPost() {
   const titleInput = document.getElementById("postTitleInput");
+  const authorInput = document.getElementById("postAuthorInput");
   const contentInput = document.getElementById("postInput");
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const user = firebase.auth().currentUser;
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 글을 작성할 수 있습니다.");
   if (!title) return alert("제목을 입력해주세요.");
   if (!content) return alert("내용을 입력해주세요.");
 
@@ -100,10 +117,11 @@ function submitPost() {
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author
   }).then(() => {
     titleInput.value = "";
+    if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
     contentInput.value = "";
     toggleWriteForm(false);
   }).catch((error) => {
@@ -114,20 +132,22 @@ function submitPost() {
 
 function submitComment(postId) {
   const user = firebase.auth().currentUser;
+  const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 댓글을 작성할 수 있습니다.");
   if (!content) return alert("댓글을 입력해주세요.");
 
   db.collection("posts").doc(postId).collection("comments").add({
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author
   }).then(() => {
     input.value = "";
+    if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
   }).catch((error) => {
     console.error("댓글 저장 실패:", error);
     alert(getFriendlyError(error));
@@ -342,17 +362,24 @@ function renderPostRow(post, index, tableBody) {
     const form = document.createElement("div");
     form.className = "comment-form";
 
+    const authorInput = document.createElement("input");
+    authorInput.id = `commentAuthorInput-${postId}`;
+    authorInput.className = "comment-author-input";
+    authorInput.type = "text";
+    authorInput.maxLength = 40;
+    authorInput.placeholder = "작성자 (비워두면 익명)";
+    authorInput.value = currentUser && currentUser.displayName ? currentUser.displayName : "";
+
     const input = document.createElement("textarea");
     input.id = `commentInput-${postId}`;
     input.rows = 2;
-    input.placeholder = currentUser ? "따뜻한 댓글을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다.";
-    input.disabled = !currentUser;
+    input.placeholder = "거친 말도 괜찮아요. 골렘이 따뜻하게 다듬어줄게요.";
 
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "댓글 쓰기";
-    submitBtn.disabled = !currentUser;
-    submitBtn.onclick = () => submitComment(postId);
+    submitBtn.onclick = () => window.submitComment(postId);
 
+    form.appendChild(authorInput);
     form.appendChild(input);
     form.appendChild(submitBtn);
 
@@ -434,13 +461,14 @@ firebase.auth().onAuthStateChanged((user) => {
         <span>${user.displayName || '사용자'}님${isAdmin(user) ? '<b class="admin-badge">관리자</b>' : ''}</span>
       `;
     } else {
-      userInfo.innerHTML = "로그인이 필요합니다.";
+      userInfo.innerHTML = "로그인 없이도 작성할 수 있습니다.";
     }
   }
 
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
 
+  syncPostAuthorInput(user);
   startPostListener(user);
 });
 

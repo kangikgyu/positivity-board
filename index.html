@@ -4,7 +4,7 @@
   <link rel="icon" href="icons/favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>긍정 게시판</title>
+  <title>따듯한 게시판 in 익규 유니버스</title>
   <link rel="stylesheet" href="style.css?v=20260611-4">
   <link rel="stylesheet" href="header-mascot.css?v=20260611-4">
   <link rel="stylesheet" href="robot-polisher.css?v=20260611-4">
@@ -12,37 +12,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-functions-compat.js"></script>
 </head>
 <body>
   <canvas id="characterCanvas" aria-hidden="true"></canvas>
+  <div class="scroll-orb-field" aria-hidden="true">
+    <span class="scroll-orb orb-one"></span>
+    <span class="scroll-orb orb-two"></span>
+    <span class="scroll-orb orb-three"></span>
+  </div>
 
   <main class="app-shell">
     <header class="top-bar">
       <div class="brand-lockup">
-        <div class="brand-mark" aria-hidden="true">K</div>
+        <div class="brand-mark" aria-hidden="true">익</div>
         <div>
           <p class="eyebrow">kangikgyu official</p>
-          <h1>긍정 게시판</h1>
-          <p class="subtitle">kangikgyu가 만들고 운영하는 따뜻한 댓글 공간</p>
+          <h1>따듯한 게시판 in 익규 유니버스</h1>
+          <p class="subtitle">말을 조금 더 따뜻하게 바꿔주는 익규 유니버스 게시판</p>
           <p class="trust-badge">운영자 확인 게시판</p>
         </div>
       </div>
-      <div class="header-mascot" aria-label="F 모드 안내 로봇">
-        <div class="header-robot" aria-hidden="true">
-          <span class="mini-part mini-antenna"></span>
-          <span class="mini-part mini-head">
-            <span class="mini-eye left"></span>
-            <span class="mini-eye right"></span>
-          </span>
-          <span class="mini-part mini-body">
-            <span class="mini-chest"></span>
-          </span>
-          <span class="mini-part mini-arm left"></span>
-          <span class="mini-part mini-arm right"></span>
-          <span class="mini-moss one"></span>
-          <span class="mini-moss two"></span>
-        </div>
-        <p class="header-speech">F 모드로<br>내가 전해줄께</p>
+      <div class="header-mascot" aria-label="따뜻한 댓글 골렘 안내">
+        <img class="header-golem-image" src="icons/golem-front.png?v=20260620-1" alt="따뜻한 댓글을 만들어주는 골렘" />
+        <p class="header-speech">거친 말은 골렘이 먹고,<br>따뜻한 댓글로 다시 꺼내줄게요.</p>
       </div>
       <div class="auth-area">
         <div id="userInfo" class="user-info"></div>
@@ -60,7 +53,8 @@
 
     <section id="writePanel" class="write-panel" hidden>
       <input id="postTitleInput" type="text" placeholder="제목을 입력하세요" maxlength="80" />
-      <textarea id="postInput" placeholder="응원, 고민, 감사의 메시지를 적어보세요..." rows="5"></textarea>
+      <input id="postAuthorInput" type="text" placeholder="작성자 (비워두면 익명)" maxlength="40" />
+      <textarea id="postInput" placeholder="거친 말도 괜찮아요. 골렘이 따뜻한 댓글로 다듬어줄게요..." rows="5"></textarea>
       <div class="write-actions">
         <button class="secondary-btn" onclick="toggleWriteForm(false)">닫기</button>
         <button id="submitBtn" onclick="submitPost()">글 올리기</button>

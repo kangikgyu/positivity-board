@@ -25,6 +25,71 @@ body {
   pointer-events: none;
 }
 
+.scroll-orb-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scroll-orb {
+  position: absolute;
+  display: block;
+  border: 2px solid rgba(87, 157, 168, 0.2);
+  border-radius: 50%;
+  opacity: 0.75;
+  transform: rotate(var(--scroll-rotate, 0deg));
+  transition: transform 120ms linear;
+}
+
+.scroll-orb::before,
+.scroll-orb::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 222, 89, 0.42);
+  box-shadow: 0 0 18px rgba(255, 222, 89, 0.25);
+}
+
+.scroll-orb::before {
+  width: 18px;
+  height: 18px;
+  left: 12%;
+  top: 18%;
+}
+
+.scroll-orb::after {
+  width: 10px;
+  height: 10px;
+  right: 18%;
+  bottom: 15%;
+  background: rgba(61, 183, 204, 0.42);
+}
+
+.orb-one {
+  width: 260px;
+  height: 260px;
+  left: max(-120px, -8vw);
+  top: 110px;
+}
+
+.orb-two {
+  width: 380px;
+  height: 380px;
+  right: max(-180px, -10vw);
+  top: 38vh;
+  transform: rotate(calc(var(--scroll-rotate, 0deg) * -0.7));
+}
+
+.orb-three {
+  width: 190px;
+  height: 190px;
+  left: 12vw;
+  bottom: -80px;
+  transform: rotate(calc(var(--scroll-rotate, 0deg) * 1.35));
+}
+
 button,
 input,
 textarea {
@@ -510,5 +575,51 @@ textarea {
 
   .comment-form button {
     width: 100%;
+  }
+}
+
+.comment-author-input {
+  grid-column: 1 / -1;
+}
+
+@media screen and (max-width: 640px) {
+  h1 {
+    font-size: 1.28rem;
+    line-height: 1.22;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  .comment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .comment-form button {
+    width: 100%;
+  }
+}
+
+
+@media screen and (max-width: 640px) {
+  .orb-one {
+    width: 190px;
+    height: 190px;
+    left: -110px;
+    top: 90px;
+  }
+
+  .orb-two {
+    width: 260px;
+    height: 260px;
+    right: -150px;
+    top: 46vh;
+  }
+
+  .orb-three {
+    width: 140px;
+    height: 140px;
+    left: 8vw;
   }
 }

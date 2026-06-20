@@ -184,3 +184,20 @@ window.addEventListener("resize", () => {
   resizeCanvas();
   createCharacters();
 });
+
+
+let scrollOrbFrame = null;
+
+function updateScrollOrbs() {
+  scrollOrbFrame = null;
+  const rotation = `${window.scrollY * 0.18}deg`;
+  document.documentElement.style.setProperty("--scroll-rotate", rotation);
+}
+
+function requestScrollOrbUpdate() {
+  if (scrollOrbFrame) return;
+  scrollOrbFrame = requestAnimationFrame(updateScrollOrbs);
+}
+
+updateScrollOrbs();
+window.addEventListener("scroll", requestScrollOrbUpdate, { passive: true });
