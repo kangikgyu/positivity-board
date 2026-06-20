@@ -16,6 +16,12 @@
 </head>
 <body>
   <canvas id="characterCanvas" aria-hidden="true"></canvas>
+  <div class="scroll-orb-field" aria-hidden="true">
+    <span class="scroll-orb orb-one"></span>
+    <span class="scroll-orb orb-two"></span>
+    <span class="scroll-orb orb-three"></span>
+    <span class="scroll-companion"></span>
+  </div>
 
   <main class="app-shell">
     <header class="top-bar">
@@ -28,21 +34,8 @@
           <p class="trust-badge">운영자 확인 게시판</p>
         </div>
       </div>
-      <div class="header-mascot" aria-label="F 모드 안내 로봇">
-        <div class="header-robot" aria-hidden="true">
-          <span class="mini-part mini-antenna"></span>
-          <span class="mini-part mini-head">
-            <span class="mini-eye left"></span>
-            <span class="mini-eye right"></span>
-          </span>
-          <span class="mini-part mini-body">
-            <span class="mini-chest"></span>
-          </span>
-          <span class="mini-part mini-arm left"></span>
-          <span class="mini-part mini-arm right"></span>
-          <span class="mini-moss one"></span>
-          <span class="mini-moss two"></span>
-        </div>
+      <div class="header-mascot" aria-label="따뜻한 댓글 골렘 안내">
+        <img class="header-golem-image" src="./icons/golem-front.png" alt="따뜻한 댓글을 만들어주는 골렘" loading="eager" onerror="this.onerror=null; this.src='./icons/favicon.svg';" />
         <p class="header-speech">거친 말은 골렘이 먹고,<br>따뜻한 댓글로 다시 꺼내줄게요.</p>
       </div>
       <div class="auth-area">
