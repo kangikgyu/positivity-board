@@ -207,3 +207,16 @@ function requestScrollOrbUpdate() {
 
 updateScrollOrbs();
 window.addEventListener("scroll", requestScrollOrbUpdate, { passive: true });
+const SPLASH_DURATION_MS = 2000;
+
+function hideSplashScreen() {
+  const splashScreen = document.getElementById("splashScreen");
+  if (!splashScreen) return;
+
+  window.setTimeout(() => {
+    splashScreen.classList.add("is-hidden");
+    window.setTimeout(() => splashScreen.remove(), 600);
+  }, SPLASH_DURATION_MS);
+}
+
+hideSplashScreen();
