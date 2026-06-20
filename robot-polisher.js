@@ -1,26 +1,15 @@
 const robotDb = firebase.firestore();
+const polishTextFunction = firebase.functions().httpsCallable("polishText");
 
-function softlyPolishText(text) {
-  let polished = text.trim();
+async function polishText(content) {
+  const result = await polishTextFunction({ content });
+  const polishedContent = result && result.data ? result.data.polishedContent : "";
 
-  const replacements = [
-    [/짜증나/gi, "속상한 마음이 들어"],
-    [/싫어/gi, "조금 어렵게 느껴져"],
-    [/왜 그래/gi, "어떤 마음인지 조금 더 듣고 싶어"],
-    [/그냥/gi, "조심스럽게"],
-    [/힘들어/gi, "요즘 마음이 조금 지쳐"],
-    [/못해/gi, "아직은 어렵지만 함께 해볼 수 있어"]
-  ];
-
-  replacements.forEach(([pattern, replacement]) => {
-    polished = polished.replace(pattern, replacement);
-  });
-
-  if (!/[.!?。！？]$/.test(polished)) {
-    polished += ".";
+  if (!polishedContent || !polishedContent.trim()) {
+    throw new Error("문장 다듬기 결과가 비어 있습니다.");
   }
 
-  return `조금 더 부드럽게 전해볼게요.\n\n${polished}\n\n읽는 사람의 마음도 함께 생각하며, 따뜻한 응원의 마음을 담아 전합니다.`;
+  return polishedContent.trim();
 }
 
 function ensureRobotOverlay() {
@@ -35,7 +24,7 @@ function ensureRobotOverlay() {
     <div class="robot-card" role="dialog" aria-modal="true" aria-labelledby="robotTitle">
       <div class="robot-scene">
         <div class="robot-aura" aria-hidden="true"></div>
-        <div class="stone-robot image-robot" aria-hidden="true"></div>
+        <video class="robot-video" src="icons/robot.mp4?v=20260619-1" muted playsinline loop preload="auto" aria-hidden="true"></video>
       </div>
       <div class="robot-copy">
         <p class="eyebrow">kindness robot</p>
@@ -44,7 +33,7 @@ function ensureRobotOverlay() {
         <div class="robot-preview" id="robotPreview" hidden>
           <label for="polishedContent">다듬어진 문장</label>
           <textarea id="polishedContent" rows="7"></textarea>
-          <p class="robot-note">현재는 LLM 연결 전 임시 다듬기입니다. 서버 함수가 연결되면 이 자리에 실제 LLM 결과가 들어옵니다.</p>
+          <p class="robot-note">OpenAI가 원문의 의미를 유지하며 공감과 위로가 느껴지도록 다듬어줍니다.</p>
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
@@ -63,33 +52,65 @@ function setRobotState(state) {
   overlay.dataset.state = state;
 }
 
+function getRobotVideo() {
+  return ensureRobotOverlay().querySelector(".robot-video");
+}
+
+function playRobotVideo() {
+  const video = getRobotVideo();
+  if (!video) return;
+
+  video.currentTime = 0;
+  video.play().catch((error) => {
+    console.warn("로봇 영상 자동 재생 실패:", error);
+  });
+}
+
+function stopRobotVideo() {
+  const video = getRobotVideo();
+  if (!video) return;
+
+  video.pause();
+  video.currentTime = 0;
+}
+
 function closeRobotOverlay() {
   const overlay = ensureRobotOverlay();
   overlay.hidden = true;
   overlay.dataset.state = "idle";
+  stopRobotVideo();
 }
 
-function savePolishedPost(title, content, user) {
+function getDefaultAuthorName(user) {
+  return user && user.displayName ? user.displayName : "익명";
+}
+
+function getAuthorNameFromInput(input, user) {
+  const author = input ? input.value.trim() : "";
+  return author || getDefaultAuthorName(user);
+}
+
+function savePolishedPost(title, content, user, author) {
   return robotDb.collection("posts").add({
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user)
   });
 }
 
-window.submitPost = function submitPostWithRobot() {
-  const titleInput = document.getElementById("postTitleInput");
-  const contentInput = document.getElementById("postInput");
-  const title = titleInput.value.trim();
-  const content = contentInput.value.trim();
-  const user = firebase.auth().currentUser;
+function savePolishedComment(postId, content, user, author) {
+  return robotDb.collection("posts").doc(postId).collection("comments").add({
+    content,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: null,
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user)
+  });
+}
 
-  if (!user) return alert("로그인 후 글을 작성할 수 있습니다.");
-  if (!title) return alert("제목을 입력해주세요.");
-  if (!content) return alert("내용을 입력해주세요.");
-
+function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리는 중" }) {
   const overlay = ensureRobotOverlay();
   const status = document.getElementById("robotStatus");
   const preview = document.getElementById("robotPreview");
@@ -101,35 +122,93 @@ window.submitPost = function submitPostWithRobot() {
   overlay.hidden = false;
   preview.hidden = true;
   actions.hidden = true;
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = "이 문장으로 올리기";
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
   setRobotState("thinking");
+  playRobotVideo();
 
-  window.setTimeout(() => {
-    setRobotState("ready");
-    textarea.value = softlyPolishText(content);
-    status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
-    preview.hidden = false;
-    actions.hidden = false;
-  }, 1500);
+  polishText(content)
+    .then((polishedContent) => {
+      setRobotState("ready");
+      textarea.value = polishedContent;
+      status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
+      preview.hidden = false;
+      actions.hidden = false;
+    })
+    .catch((error) => {
+      console.error("문장 다듬기 실패:", error);
+      setRobotState("ready");
+      textarea.value = content;
+      status.textContent = "문장을 다듬지 못했어요. 원문으로 게시하거나 다시 시도해 주세요.";
+      preview.hidden = false;
+      actions.hidden = false;
+    });
 
   cancelBtn.onclick = closeRobotOverlay;
   confirmBtn.onclick = () => {
+    const finalContent = textarea.value.trim();
+    if (!finalContent) return alert("올릴 문장을 입력해주세요.");
+
     confirmBtn.disabled = true;
-    confirmBtn.textContent = "올리는 중";
-    savePolishedPost(title, textarea.value.trim(), user)
+    confirmBtn.textContent = savingText;
+    onConfirm(finalContent)
       .then(() => {
-        titleInput.value = "";
-        contentInput.value = "";
         closeRobotOverlay();
-        if (window.toggleWriteForm) window.toggleWriteForm(false);
+        if (typeof onSuccess === "function") onSuccess();
       })
       .catch((error) => {
         console.error("글 저장 실패:", error);
-        alert("글 저장 중 문제가 발생했습니다. Firestore 권한을 확인해주세요.");
+        alert("저장 중 문제가 발생했습니다. Firestore 권한을 확인해주세요.");
       })
       .finally(() => {
         confirmBtn.disabled = false;
         confirmBtn.textContent = "이 문장으로 올리기";
       });
   };
+}
+
+window.submitPost = function submitPostWithRobot() {
+  const titleInput = document.getElementById("postTitleInput");
+  const authorInput = document.getElementById("postAuthorInput");
+  const contentInput = document.getElementById("postInput");
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
+  const user = firebase.auth().currentUser;
+  const author = getAuthorNameFromInput(authorInput, user);
+
+  if (!title) return alert("제목을 입력해주세요.");
+  if (!content) return alert("내용을 입력해주세요.");
+
+  openRobotPolisher({
+    content,
+    savingText: "글 올리는 중",
+    onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user, author),
+    onSuccess: () => {
+      titleInput.value = "";
+      if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
+      contentInput.value = "";
+      if (window.toggleWriteForm) window.toggleWriteForm(false);
+    }
+  });
+};
+
+window.submitComment = function submitCommentWithRobot(postId) {
+  const user = firebase.auth().currentUser;
+  const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
+  const input = document.getElementById(`commentInput-${postId}`);
+  const content = input ? input.value.trim() : "";
+  const author = getAuthorNameFromInput(authorInput, user);
+
+  if (!content) return alert("댓글을 입력해주세요.");
+
+  openRobotPolisher({
+    content,
+    savingText: "댓글 올리는 중",
+    onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user, author),
+    onSuccess: () => {
+      input.value = "";
+      if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
+    }
+  });
 };

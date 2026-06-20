@@ -512,3 +512,26 @@ textarea {
     width: 100%;
   }
 }
+
+.comment-author-input {
+  grid-column: 1 / -1;
+}
+
+@media screen and (max-width: 640px) {
+  h1 {
+    font-size: 1.28rem;
+    line-height: 1.22;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  .comment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .comment-form button {
+    width: 100%;
+  }
+}
