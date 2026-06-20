@@ -184,3 +184,26 @@ window.addEventListener("resize", () => {
   resizeCanvas();
   createCharacters();
 });
+
+
+let scrollOrbFrame = null;
+
+function updateScrollOrbs() {
+  scrollOrbFrame = null;
+  const rotation = `${window.scrollY * 0.18}deg`;
+  const maxShift = Math.max(140, window.innerHeight * 0.58);
+  const shift = `${Math.min(window.scrollY * 0.34, maxShift)}px`;
+  const sway = `${Math.sin(window.scrollY * 0.012) * 34}px`;
+
+  document.documentElement.style.setProperty("--scroll-rotate", rotation);
+  document.documentElement.style.setProperty("--scroll-shift", shift);
+  document.documentElement.style.setProperty("--scroll-sway", sway);
+}
+
+function requestScrollOrbUpdate() {
+  if (scrollOrbFrame) return;
+  scrollOrbFrame = requestAnimationFrame(updateScrollOrbs);
+}
+
+updateScrollOrbs();
+window.addEventListener("scroll", requestScrollOrbUpdate, { passive: true });
