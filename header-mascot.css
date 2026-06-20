@@ -1,14 +1,33 @@
 .header-mascot {
-  display: flex;
+  order: -1;
+  display: grid;
+  grid-template-columns: minmax(120px, clamp(140px, 24vw, 230px)) minmax(180px, 1fr);
   align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-  margin-top: 2px;
-  padding: 8px 10px;
-  border: 1px solid rgba(143, 198, 209, 0.8);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 250, 216, 0.94), rgba(232, 250, 252, 0.9));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 6px 14px rgba(76, 117, 124, 0.12);
+  gap: clamp(12px, 3vw, 28px);
+  width: 100%;
+  margin: 0 0 8px;
+  padding: clamp(12px, 2.8vw, 22px);
+  border: 1px solid rgba(143, 198, 209, 0.9);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 250, 216, 0.96), rgba(232, 250, 252, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84), 0 8px 20px rgba(76, 117, 124, 0.13);
+}
+
+.header-golem-image {
+  display: block;
+  width: 100%;
+  max-width: clamp(140px, 25vw, 240px);
+  aspect-ratio: 1 / 0.78;
+  justify-self: center;
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 20%, #fff9bc, #dff7f4 64%, #cfeaf1 100%);
+  box-shadow: 0 6px 0 rgba(83, 132, 139, 0.18), 0 14px 28px rgba(76, 117, 124, 0.18);
+  object-fit: contain;
+  padding: clamp(6px, 1.4vw, 12px);
+  position: relative;
+  z-index: 1;
+  animation: headerRobotFloat 2.8s ease-in-out infinite;
 }
 
 .header-robot {
@@ -163,20 +182,25 @@
   }
 
   .header-mascot {
-    order: 3;
-    width: 100%;
-    justify-content: center;
+    grid-template-columns: minmax(116px, 34%) 1fr;
   }
 
   .header-speech {
-    max-width: min(230px, calc(100vw - 150px));
+    max-width: none;
   }
 }
 
 @media screen and (max-width: 640px) {
   .header-mascot {
-    justify-content: flex-start;
-    padding: 7px 8px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .header-golem-image {
+    max-width: min(100%, 280px);
+    padding: 7px;
   }
 
   .header-robot {
@@ -187,5 +211,23 @@
 
   .header-speech {
     font-size: 0.76rem;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .header-mascot {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .header-golem-image {
+    max-width: 100%;
+  }
+
+  .header-speech {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 0.76rem;
+    line-height: 1.34;
   }
 }

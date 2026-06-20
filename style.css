@@ -1,7 +1,31 @@
+@font-face {
+  font-family: "GmarketSans";
+  src: url("fonts/GmarketSansTTFLight.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GmarketSans";
+  src: url("fonts/GmarketSansTTFMedium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GmarketSans";
+  src: url("fonts/GmarketSansTTFBold.ttf") format("truetype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color: #333;
   background: #eef5f7;
-  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-family: "GmarketSans", 'Segoe UI', 'Malgun Gothic', sans-serif;
 }
 
 * {
@@ -14,6 +38,7 @@ body {
   overflow-x: hidden;
   background: radial-gradient(circle at top left, #fff7cf 0, transparent 34%), radial-gradient(circle at bottom right, #c9f7ff 0, transparent 36%), #eef5f7;
   color: #333;
+  font-weight: 500;
 }
 
 #characterCanvas {
@@ -23,6 +48,106 @@ body {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
+}
+
+.scroll-orb-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scroll-orb {
+  position: absolute;
+  display: block;
+  border: 2px solid rgba(87, 157, 168, 0.2);
+  border-radius: 50%;
+  opacity: 0.75;
+  transform: rotate(var(--scroll-rotate, 0deg));
+  transition: transform 120ms linear;
+}
+
+.scroll-orb::before,
+.scroll-orb::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 222, 89, 0.42);
+  box-shadow: 0 0 18px rgba(255, 222, 89, 0.25);
+}
+
+.scroll-orb::before {
+  width: 18px;
+  height: 18px;
+  left: 12%;
+  top: 18%;
+}
+
+.scroll-orb::after {
+  width: 10px;
+  height: 10px;
+  right: 18%;
+  bottom: 15%;
+  background: rgba(61, 183, 204, 0.42);
+}
+
+.orb-one {
+  width: 260px;
+  height: 260px;
+  left: max(-120px, -8vw);
+  top: 110px;
+}
+
+.orb-two {
+  width: 380px;
+  height: 380px;
+  right: max(-180px, -10vw);
+  top: 38vh;
+  transform: rotate(calc(var(--scroll-rotate, 0deg) * -0.7));
+}
+
+.orb-three {
+  width: 190px;
+  height: 190px;
+  left: 12vw;
+  bottom: -80px;
+  transform: rotate(calc(var(--scroll-rotate, 0deg) * 1.35));
+}
+
+.scroll-companion {
+  position: absolute;
+  left: clamp(18px, 8vw, 110px);
+  top: calc(18vh + var(--scroll-shift, 0px));
+  width: 72px;
+  height: 72px;
+  border: 2px solid rgba(246, 190, 79, 0.48);
+  border-radius: 22px 22px 28px 28px;
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 190, 0.92), rgba(128, 178, 154, 0.72) 48%, rgba(82, 123, 132, 0.36) 100%);
+  box-shadow: 0 10px 26px rgba(45, 96, 104, 0.16), inset 0 6px 12px rgba(255, 255, 255, 0.42);
+  opacity: 0.72;
+  transform: translate3d(calc(var(--scroll-sway, 0px)), 0, 0) rotate(calc(var(--scroll-rotate, 0deg) * 0.45));
+  transition: top 120ms linear, transform 120ms linear;
+}
+
+.scroll-companion::before,
+.scroll-companion::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f7ff56;
+  box-shadow: 0 0 10px rgba(247, 255, 86, 0.7);
+}
+
+.scroll-companion::before {
+  left: 21px;
+}
+
+.scroll-companion::after {
+  right: 21px;
 }
 
 button,
@@ -56,6 +181,7 @@ button:disabled {
 
 .top-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
@@ -101,6 +227,11 @@ h1 {
   color: #115e6f;
   font-size: 1.55rem;
   font-weight: 900;
+  line-height: 1.08;
+}
+
+h1 span {
+  display: inline-block;
 }
 
 .subtitle {
@@ -510,5 +641,73 @@ textarea {
 
   .comment-form button {
     width: 100%;
+  }
+}
+
+.comment-author-input {
+  grid-column: 1 / -1;
+}
+
+@media screen and (max-width: 640px) {
+  h1 {
+    font-size: 1.28rem;
+    line-height: 1.22;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  .comment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .comment-form button {
+    width: 100%;
+  }
+}
+
+
+@media screen and (max-width: 640px) {
+  .orb-one {
+    width: 190px;
+    height: 190px;
+    left: -110px;
+    top: 90px;
+  }
+
+  .orb-two {
+    width: 260px;
+    height: 260px;
+    right: -150px;
+    top: 46vh;
+  }
+
+  .orb-three {
+    width: 140px;
+    height: 140px;
+    left: 8vw;
+  }
+
+  .scroll-companion {
+    width: 54px;
+    height: 54px;
+    left: 14px;
+    border-radius: 18px 18px 22px 22px;
+  }
+
+  .scroll-companion::before,
+  .scroll-companion::after {
+    top: 19px;
+    width: 7px;
+    height: 7px;
+  }
+
+  .scroll-companion::before {
+    left: 16px;
+  }
+
+  .scroll-companion::after {
+    right: 16px;
   }
 }
