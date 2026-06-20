@@ -461,7 +461,7 @@ firebase.auth().onAuthStateChanged((user) => {
         <span>${user.displayName || '사용자'}님${isAdmin(user) ? '<b class="admin-badge">관리자</b>' : ''}</span>
       `;
     } else {
-      userInfo.innerHTML = "로그인 없이도 작성할 수 있습니다.";
+      userInfo.innerHTML = "로그인 없이도 작성 가능";
     }
   }
 
