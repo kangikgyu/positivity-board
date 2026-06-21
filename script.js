@@ -27,6 +27,22 @@ function canManageDoc(data, user = currentUser) {
   return !!user && (data.uid === user.uid || isAdmin(user));
 }
 
+function getDefaultAuthorName(user = currentUser) {
+  return user && user.displayName ? user.displayName : "익명";
+}
+
+function getAuthorNameFromInput(input, user = currentUser) {
+  const author = input ? input.value.trim() : "";
+  return author || getDefaultAuthorName(user);
+}
+
+function syncPostAuthorInput(user = currentUser) {
+  const authorInput = document.getElementById("postAuthorInput");
+  if (!authorInput || authorInput.value.trim()) return;
+
+  authorInput.value = user && user.displayName ? user.displayName : "";
+}
+
 function formatDate(value) {
   if (!value) return "방금 전";
 
@@ -87,12 +103,13 @@ function toggleWriteForm(forceOpen) {
 
 function submitPost() {
   const titleInput = document.getElementById("postTitleInput");
+  const authorInput = document.getElementById("postAuthorInput");
   const contentInput = document.getElementById("postInput");
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const user = firebase.auth().currentUser;
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 글을 작성할 수 있습니다.");
   if (!title) return alert("제목을 입력해주세요.");
   if (!content) return alert("내용을 입력해주세요.");
 
@@ -100,10 +117,11 @@ function submitPost() {
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author
   }).then(() => {
     titleInput.value = "";
+    if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
     contentInput.value = "";
     toggleWriteForm(false);
   }).catch((error) => {
@@ -114,20 +132,22 @@ function submitPost() {
 
 function submitComment(postId) {
   const user = firebase.auth().currentUser;
+  const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
+  const author = getAuthorNameFromInput(authorInput, user);
 
-  if (!user) return alert("로그인 후 댓글을 작성할 수 있습니다.");
   if (!content) return alert("댓글을 입력해주세요.");
 
   db.collection("posts").doc(postId).collection("comments").add({
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
-    uid: user.uid,
-    author: user.displayName || "익명"
+    uid: user ? user.uid : null,
+    author
   }).then(() => {
     input.value = "";
+    if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
   }).catch((error) => {
     console.error("댓글 저장 실패:", error);
     alert(getFriendlyError(error));
@@ -161,6 +181,37 @@ function deleteComment(postId, commentId) {
     });
 }
 
+function updatePost(postId, title, content) {
+  const user = firebase.auth().currentUser;
+  if (!user) return alert("로그인 후 글을 수정할 수 있습니다.");
+  if (!title.trim()) return alert("제목을 입력해주세요.");
+  if (!content.trim()) return alert("내용을 입력해주세요.");
+
+  const postRef = db.collection("posts").doc(postId);
+
+  return postRef.get()
+    .then((doc) => {
+      if (!doc.exists) throw new Error("이미 삭제된 글입니다.");
+
+      const data = doc.data();
+      if (!canManageDoc(data, user)) {
+        alert("작성자 또는 관리자만 글을 수정할 수 있습니다.");
+        return null;
+      }
+
+      return postRef.update({
+        title: title.trim(),
+        content: content.trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        editedBy: user.email || user.uid
+      });
+    })
+    .catch((error) => {
+      console.error("글 수정 실패:", error);
+      alert(getFriendlyError(error));
+    });
+}
+
 function deletePost(postId) {
   const user = firebase.auth().currentUser;
   if (!user) return alert("로그인 후 글을 삭제할 수 있습니다.");
@@ -189,6 +240,42 @@ function deletePost(postId) {
 function togglePostDetail(postId) {
   openPostId = openPostId === postId ? null : postId;
   renderBoard(currentUser);
+}
+
+function renderPostEditForm(postId, data, detail) {
+  detail.innerHTML = "";
+
+  const form = document.createElement("div");
+  form.className = "post-edit-form";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.maxLength = 80;
+  titleInput.value = data.title || "";
+
+  const textarea = document.createElement("textarea");
+  textarea.value = data.content || "";
+  textarea.rows = 5;
+
+  const actions = document.createElement("div");
+  actions.className = "comment-edit-actions";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent = "취소";
+  cancelBtn.className = "cancel-edit-btn";
+  cancelBtn.onclick = () => renderBoard(currentUser);
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "저장";
+  saveBtn.onclick = () => updatePost(postId, titleInput.value, textarea.value)
+    .then(() => renderBoard(currentUser));
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(saveBtn);
+  form.appendChild(titleInput);
+  form.appendChild(textarea);
+  form.appendChild(actions);
+  detail.appendChild(form);
 }
 
 function renderCommentEditForm(postId, commentId, comment, item) {
@@ -323,9 +410,15 @@ function renderPostRow(post, index, tableBody) {
     detail.appendChild(content);
 
     if (canManageDoc(data, currentUser)) {
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "글 수정";
+      editBtn.classList.add("text-btn");
+      editBtn.onclick = () => renderPostEditForm(postId, data, detail);
+      detail.appendChild(editBtn);
+
       const delBtn = document.createElement("button");
       delBtn.textContent = "글 삭제";
-      delBtn.classList.add("delete-btn");
+      delBtn.classList.add("text-btn", "danger-text", "post-action-btn");
       delBtn.onclick = () => deletePost(postId);
       detail.appendChild(delBtn);
     }
@@ -342,17 +435,24 @@ function renderPostRow(post, index, tableBody) {
     const form = document.createElement("div");
     form.className = "comment-form";
 
+    const authorInput = document.createElement("input");
+    authorInput.id = `commentAuthorInput-${postId}`;
+    authorInput.className = "comment-author-input";
+    authorInput.type = "text";
+    authorInput.maxLength = 40;
+    authorInput.placeholder = "작성자 (비워두면 익명)";
+    authorInput.value = currentUser && currentUser.displayName ? currentUser.displayName : "";
+
     const input = document.createElement("textarea");
     input.id = `commentInput-${postId}`;
     input.rows = 2;
-    input.placeholder = currentUser ? "따뜻한 댓글을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다.";
-    input.disabled = !currentUser;
+    input.placeholder = "거친 말도 괜찮아요. 골렘이 따뜻하게 다듬어줄게요.";
 
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "댓글 쓰기";
-    submitBtn.disabled = !currentUser;
-    submitBtn.onclick = () => submitComment(postId);
+    submitBtn.onclick = () => window.submitComment(postId);
 
+    form.appendChild(authorInput);
     form.appendChild(input);
     form.appendChild(submitBtn);
 
@@ -410,7 +510,6 @@ function startPostListener(user) {
 
   unsubscribePosts = db.collection("posts")
     .orderBy("createdAt", "desc")
-    .limit(15)
     .onSnapshot((snapshot) => {
       latestPosts = snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
       renderBoard(user);
@@ -434,13 +533,14 @@ firebase.auth().onAuthStateChanged((user) => {
         <span>${user.displayName || '사용자'}님${isAdmin(user) ? '<b class="admin-badge">관리자</b>' : ''}</span>
       `;
     } else {
-      userInfo.innerHTML = "로그인이 필요합니다.";
+      userInfo.innerHTML = "로그인 없이도 작성 가능";
     }
   }
 
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
 
+  syncPostAuthorInput(user);
   startPostListener(user);
 });
 

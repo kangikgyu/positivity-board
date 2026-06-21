@@ -1,0 +1,17 @@
+{
+  "name": "positivity-board-functions",
+  "description": "Cloud Functions for the positivity board",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "lint": "node --check index.js"
+  },
+  "dependencies": {
+    "firebase-functions": "^6.4.0",
+    "openai": "^4.104.0"
+  },
+  "devDependencies": {}
+}
