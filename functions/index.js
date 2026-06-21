@@ -5,7 +5,7 @@ const OpenAI = require("openai");
 const openaiApiKey = defineSecret("OPENAI_API_KEY");
 
 const MAX_CONTENT_LENGTH = 1200;
-const OPENAI_MODEL = "gpt-5.4-mini";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const SAFE_FALLBACK_COMMENT = "저는 조금 다르게 느꼈어요. 어떤 점에서 그렇게 생각했는지 더 들어보고 싶어요.";
 const SAFE_FALLBACK_RISK_SUMMARY = "원문이 상대에게 다소 강하게 느껴질 수 있어 표현을 조금 부드럽게 조정했어요.";
 
@@ -53,11 +53,31 @@ function parsePolishReview(rawContent) {
 }
 
 async function createPolishReview(client, content, extraInstruction = "") {
-  const response = await client.chat.completions.create({
+  const response = await client.responses.create({
     model: OPENAI_MODEL,
     temperature: 0.4,
-    max_tokens: 320,
-    messages: [
+    max_output_tokens: 320,
+    text: {
+      format: {
+        type: "json_schema",
+        name: "polish_review",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            riskSummary: {
+              type: "string"
+            },
+            polishedContent: {
+              type: "string"
+            }
+          },
+          required: ["riskSummary", "polishedContent"]
+        }
+      }
+    },
+    input: [
       {
         role: "system",
         content: [
@@ -88,9 +108,7 @@ async function createPolishReview(client, content, extraInstruction = "") {
     ]
   });
 
-  const rawContent = response.choices[0] && response.choices[0].message
-    ? response.choices[0].message.content
-    : "";
+  const rawContent = response.output_text || "";
 
   return parsePolishReview(rawContent);
 }

@@ -98,13 +98,18 @@ function getAuthorNameFromInput(input, user) {
   return author || getDefaultAuthorName(user);
 }
 
+function isRobotAdminAuthor(user) {
+  return typeof window.isAdmin === "function" && window.isAdmin(user);
+}
+
 function savePolishedPost(title, content, user, author) {
   return robotDb.collection("posts").add({
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     uid: user ? user.uid : null,
-    author: author || getDefaultAuthorName(user)
+    author: author || getDefaultAuthorName(user),
+    authorRole: isRobotAdminAuthor(user) ? "admin" : "user"
   });
 }
 
@@ -114,7 +119,8 @@ function savePolishedComment(postId, content, user, author) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
     uid: user ? user.uid : null,
-    author: author || getDefaultAuthorName(user)
+    author: author || getDefaultAuthorName(user),
+    authorRole: isRobotAdminAuthor(user) ? "admin" : "user"
   });
 }
 
