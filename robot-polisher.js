@@ -3,13 +3,17 @@ const polishTextFunction = firebase.functions().httpsCallable("polishText");
 
 async function polishText(content) {
   const result = await polishTextFunction({ content });
-  const polishedContent = result && result.data ? result.data.polishedContent : "";
+  const data = result && result.data ? result.data : {};
+  const polishedContent = data.polishedContent || "";
 
   if (!polishedContent || !polishedContent.trim()) {
     throw new Error("문장 다듬기 결과가 비어 있습니다.");
   }
 
-  return polishedContent.trim();
+  return {
+    polishedContent: polishedContent.trim(),
+    riskSummary: (data.riskSummary || "공격적으로 보일 수 있는 표현을 확인하고 더 부드러운 문장으로 다듬었어요.").trim()
+  };
 }
 
 function ensureRobotOverlay() {
@@ -31,9 +35,13 @@ function ensureRobotOverlay() {
         <h2 id="robotTitle">로봇이 문장을 정돈하는 중</h2>
         <p id="robotStatus">잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.</p>
         <div class="robot-preview" id="robotPreview" hidden>
-          <label for="polishedContent">다듬어진 문장</label>
+          <div class="robot-risk" id="robotRisk" hidden>
+            <strong>상대에게 이렇게 보일 수 있어요</strong>
+            <p id="robotRiskText"></p>
+          </div>
+          <label for="polishedContent">수정 제안</label>
           <textarea id="polishedContent" rows="7"></textarea>
-          <p class="robot-note">OpenAI가 원문의 의미를 유지하며 공감과 위로가 느껴지도록 다듬어줍니다.</p>
+          <p class="robot-note">수정본을 확인한 뒤 이 문장으로 게시할지 선택해주세요.</p>
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
@@ -115,6 +123,8 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   const status = document.getElementById("robotStatus");
   const preview = document.getElementById("robotPreview");
   const textarea = document.getElementById("polishedContent");
+  const risk = document.getElementById("robotRisk");
+  const riskText = document.getElementById("robotRiskText");
   const actions = document.getElementById("robotActions");
   const cancelBtn = document.getElementById("robotCancelBtn");
   const confirmBtn = document.getElementById("robotConfirmBtn");
@@ -122,6 +132,8 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   overlay.hidden = false;
   preview.hidden = true;
   actions.hidden = true;
+  if (risk) risk.hidden = true;
+  if (riskText) riskText.textContent = "";
   confirmBtn.disabled = false;
   confirmBtn.textContent = "이 문장으로 올리기";
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
@@ -129,10 +141,12 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   playRobotVideo();
 
   polishText(content)
-    .then((polishedContent) => {
+    .then(({ polishedContent, riskSummary }) => {
       setRobotState("ready");
       textarea.value = polishedContent;
-      status.textContent = "다듬어진 문장이 준비됐어요. 확인한 뒤 게시해 주세요.";
+      if (riskText) riskText.textContent = riskSummary;
+      if (risk) risk.hidden = false;
+      status.textContent = "원문이 어떻게 보일 수 있는지 확인하고, 수정본으로 게시할지 선택해 주세요.";
       preview.hidden = false;
       actions.hidden = false;
     })
@@ -140,6 +154,8 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
       console.error("문장 다듬기 실패:", error);
       setRobotState("ready");
       textarea.value = content;
+      if (riskText) riskText.textContent = "AI가 문장을 분석하지 못했어요. 원문을 한 번 더 확인한 뒤 게시 여부를 선택해주세요.";
+      if (risk) risk.hidden = false;
       status.textContent = "문장을 다듬지 못했어요. 원문으로 게시하거나 다시 시도해 주세요.";
       preview.hidden = false;
       actions.hidden = false;

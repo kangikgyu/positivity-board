@@ -556,7 +556,8 @@ textarea {
 }
 
 .comment-form,
-.comment-edit-form {
+.comment-edit-form,
+.post-edit-form {
   display: grid;
   gap: 6px;
   align-items: start;
@@ -567,9 +568,22 @@ textarea {
 }
 
 .comment-form textarea,
-.comment-edit-form textarea {
+.comment-edit-form textarea,
+.post-edit-form textarea {
   min-height: 54px;
   font-size: 0.86rem;
+}
+
+.post-edit-form input {
+  font-size: 0.9rem;
+}
+
+.post-edit-form textarea {
+  min-height: 120px;
+}
+
+.post-action-btn {
+  margin-left: 8px;
 }
 
 .comment-form button {

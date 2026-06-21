@@ -181,6 +181,37 @@ function deleteComment(postId, commentId) {
     });
 }
 
+function updatePost(postId, title, content) {
+  const user = firebase.auth().currentUser;
+  if (!user) return alert("로그인 후 글을 수정할 수 있습니다.");
+  if (!title.trim()) return alert("제목을 입력해주세요.");
+  if (!content.trim()) return alert("내용을 입력해주세요.");
+
+  const postRef = db.collection("posts").doc(postId);
+
+  return postRef.get()
+    .then((doc) => {
+      if (!doc.exists) throw new Error("이미 삭제된 글입니다.");
+
+      const data = doc.data();
+      if (!canManageDoc(data, user)) {
+        alert("작성자 또는 관리자만 글을 수정할 수 있습니다.");
+        return null;
+      }
+
+      return postRef.update({
+        title: title.trim(),
+        content: content.trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        editedBy: user.email || user.uid
+      });
+    })
+    .catch((error) => {
+      console.error("글 수정 실패:", error);
+      alert(getFriendlyError(error));
+    });
+}
+
 function deletePost(postId) {
   const user = firebase.auth().currentUser;
   if (!user) return alert("로그인 후 글을 삭제할 수 있습니다.");
@@ -209,6 +240,42 @@ function deletePost(postId) {
 function togglePostDetail(postId) {
   openPostId = openPostId === postId ? null : postId;
   renderBoard(currentUser);
+}
+
+function renderPostEditForm(postId, data, detail) {
+  detail.innerHTML = "";
+
+  const form = document.createElement("div");
+  form.className = "post-edit-form";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.maxLength = 80;
+  titleInput.value = data.title || "";
+
+  const textarea = document.createElement("textarea");
+  textarea.value = data.content || "";
+  textarea.rows = 5;
+
+  const actions = document.createElement("div");
+  actions.className = "comment-edit-actions";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent = "취소";
+  cancelBtn.className = "cancel-edit-btn";
+  cancelBtn.onclick = () => renderBoard(currentUser);
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "저장";
+  saveBtn.onclick = () => updatePost(postId, titleInput.value, textarea.value)
+    .then(() => renderBoard(currentUser));
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(saveBtn);
+  form.appendChild(titleInput);
+  form.appendChild(textarea);
+  form.appendChild(actions);
+  detail.appendChild(form);
 }
 
 function renderCommentEditForm(postId, commentId, comment, item) {
@@ -343,9 +410,15 @@ function renderPostRow(post, index, tableBody) {
     detail.appendChild(content);
 
     if (canManageDoc(data, currentUser)) {
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "글 수정";
+      editBtn.classList.add("text-btn");
+      editBtn.onclick = () => renderPostEditForm(postId, data, detail);
+      detail.appendChild(editBtn);
+
       const delBtn = document.createElement("button");
       delBtn.textContent = "글 삭제";
-      delBtn.classList.add("delete-btn");
+      delBtn.classList.add("text-btn", "danger-text", "post-action-btn");
       delBtn.onclick = () => deletePost(postId);
       detail.appendChild(delBtn);
     }
@@ -437,7 +510,6 @@ function startPostListener(user) {
 
   unsubscribePosts = db.collection("posts")
     .orderBy("createdAt", "desc")
-    .limit(15)
     .onSnapshot((snapshot) => {
       latestPosts = snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() }));
       renderBoard(user);
