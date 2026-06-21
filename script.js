@@ -537,7 +537,7 @@ firebase.auth().onAuthStateChanged((user) => {
     }
   }
 
-  if (loginBtn) loginBtn.style.display = "none";
+  if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
 
   syncPostAuthorInput(user);
