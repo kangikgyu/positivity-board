@@ -23,6 +23,10 @@ function isAdmin(user = currentUser) {
   return !!user && ADMIN_EMAILS.includes((user.email || "").toLowerCase());
 }
 
+function isAdminAuthored(data) {
+  return data && data.authorRole === "admin";
+}
+
 function canManageDoc(data, user = currentUser) {
   return !!user && (data.uid === user.uid || isAdmin(user));
 }
@@ -118,7 +122,8 @@ function submitPost() {
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     uid: user ? user.uid : null,
-    author
+    author,
+    authorRole: isAdmin(user) ? "admin" : "user"
   }).then(() => {
     titleInput.value = "";
     if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
@@ -144,7 +149,8 @@ function submitComment(postId) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
     uid: user ? user.uid : null,
-    author
+    author,
+    authorRole: isAdmin(user) ? "admin" : "user"
   }).then(() => {
     input.value = "";
     if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
@@ -329,7 +335,12 @@ function renderComments(postId, commentsBox, user) {
 
         const meta = document.createElement("div");
         meta.className = "comment-meta";
-        meta.textContent = `${comment.author || "익명"} · ${formatDate(comment.createdAt)}${comment.updatedAt ? " · 수정됨" : ""}`;
+
+        const author = createAuthorLabel(comment);
+        const dateText = document.createElement("span");
+        dateText.textContent = ` · ${formatDate(comment.createdAt)}${comment.updatedAt ? " · 수정됨" : ""}`;
+        meta.appendChild(author);
+        meta.appendChild(dateText);
 
         const content = document.createElement("p");
         content.className = "comment-content";
@@ -382,7 +393,7 @@ function renderPostRow(post, index, tableBody) {
 
   const authorCell = document.createElement("td");
   authorCell.className = "col-author";
-  authorCell.textContent = data.author || "익명";
+  authorCell.appendChild(createAuthorLabel(data));
 
   const dateCell = document.createElement("td");
   dateCell.className = "col-date";
@@ -549,3 +560,23 @@ window.logout = logout;
 window.submitPost = submitPost;
 window.submitComment = submitComment;
 window.toggleWriteForm = toggleWriteForm;
+window.isAdmin = isAdmin;
+
+function createAuthorLabel(data) {
+  const label = document.createElement("span");
+  label.className = isAdminAuthored(data) ? "author-label admin-author" : "author-label";
+
+  const name = document.createElement("span");
+  name.className = "author-name";
+  name.textContent = data.author || "익명";
+  label.appendChild(name);
+
+  if (isAdminAuthored(data)) {
+    const badge = document.createElement("span");
+    badge.className = "admin-author-badge";
+    badge.textContent = "관리자";
+    label.appendChild(badge);
+  }
+
+  return label;
+}

@@ -1,0 +1,43 @@
+.author-label {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.author-name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-author {
+  position: relative;
+  padding: 3px 7px;
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff7ad 0%, #ffd166 45%, #ff7a59 100%);
+  color: #6b3200;
+  font-weight: 900;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.82), 0 5px 14px rgba(245, 158, 11, 0.28);
+}
+
+.admin-author::before {
+  content: "★";
+  color: #fff;
+  font-size: 0.68rem;
+  text-shadow: 0 1px 5px rgba(138, 90, 0, 0.48);
+}
+
+.admin-author-badge {
+  flex: 0 0 auto;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #9a3412;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
