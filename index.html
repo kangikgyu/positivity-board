@@ -4,45 +4,44 @@
   <link rel="icon" href="icons/favicon.ico" type="image/x-icon">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>긍정 게시판</title>
-  <link rel="stylesheet" href="style.css?v=20260611-4">
-  <link rel="stylesheet" href="header-mascot.css?v=20260611-4">
-  <link rel="stylesheet" href="robot-polisher.css?v=20260611-4">
+  <title>고민 게시판 in 익규 유니버스</title>
+  <link rel="stylesheet" href="style.css?v=20260621-3">
+  <link rel="stylesheet" href="header-mascot.css?v=20260620-3">
+  <link rel="stylesheet" href="robot-polisher.css?v=20260621-1">
   <link rel="stylesheet" href="robot-polisher-parts.css?v=20260611-4">
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-functions-compat.js"></script>
 </head>
 <body>
+  <div id="splashScreen" class="splash-screen" aria-label="고민 게시판 골렘 인트로">
+    <img src="./icons/golem-front-9x16.png?v=3" alt="고민 게시판 인트로 골렘" />
+  </div>
+
   <canvas id="characterCanvas" aria-hidden="true"></canvas>
+  <div class="scroll-orb-field" aria-hidden="true">
+    <span class="scroll-orb orb-one"></span>
+    <span class="scroll-orb orb-two"></span>
+    <span class="scroll-orb orb-three"></span>
+    <span class="scroll-companion"></span>
+  </div>
 
   <main class="app-shell">
     <header class="top-bar">
-      <div class="brand-lockup">
-        <div class="brand-mark" aria-hidden="true">K</div>
-        <div>
-          <p class="eyebrow">kangikgyu official</p>
-          <h1>긍정 게시판</h1>
-          <p class="subtitle">kangikgyu가 만들고 운영하는 따뜻한 댓글 공간</p>
-          <p class="trust-badge">운영자 확인 게시판</p>
+      <div class="header-mascot" aria-label="따듯한 댓글 골렘 배너">
+        <div class="hero-banner">
+          <img src="./icons/golem-front-27x9.png?v=3" alt="거친 말을 따듯한 댓글로 바꿔주는 골렘 안내 배너" loading="eager" />
         </div>
       </div>
-      <div class="header-mascot" aria-label="F 모드 안내 로봇">
-        <div class="header-robot" aria-hidden="true">
-          <span class="mini-part mini-antenna"></span>
-          <span class="mini-part mini-head">
-            <span class="mini-eye left"></span>
-            <span class="mini-eye right"></span>
-          </span>
-          <span class="mini-part mini-body">
-            <span class="mini-chest"></span>
-          </span>
-          <span class="mini-part mini-arm left"></span>
-          <span class="mini-part mini-arm right"></span>
-          <span class="mini-moss one"></span>
-          <span class="mini-moss two"></span>
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">익</div>
+        <div>
+          <p class="eyebrow">kangikgyu official</p>
+          <h1>고민 게시판<br><span>in 익규 유니버스</span></h1>
+          <p class="subtitle">고민을 조금 더 안전하게 나누는<br>익규 유니버스 게시판</p>
+          <p class="trust-badge">운영자 확인 게시판</p>
         </div>
-        <p class="header-speech">F 모드로<br>내가 전해줄께</p>
       </div>
       <div class="auth-area">
         <div id="userInfo" class="user-info"></div>
@@ -60,7 +59,8 @@
 
     <section id="writePanel" class="write-panel" hidden>
       <input id="postTitleInput" type="text" placeholder="제목을 입력하세요" maxlength="80" />
-      <textarea id="postInput" placeholder="응원, 고민, 감사의 메시지를 적어보세요..." rows="5"></textarea>
+      <input id="postAuthorInput" type="text" placeholder="작성자 (비워두면 익명)" maxlength="40" />
+      <textarea id="postInput" placeholder="거친 말도 괜찮아요. 골렘이 따듯한 댓글로 다듬어줄게요..." rows="5"></textarea>
       <div class="write-actions">
         <button class="secondary-btn" onclick="toggleWriteForm(false)">닫기</button>
         <button id="submitBtn" onclick="submitPost()">글 올리기</button>
@@ -70,8 +70,8 @@
     <section id="postList" class="post-list"></section>
   </main>
 
-  <script src="background.js?v=20260611-4"></script>
-  <script src="script.js?v=20260611-4"></script>
-  <script src="robot-polisher.js?v=20260611-4"></script>
+  <script src="background.js?v=20260620-3"></script>
+  <script src="script.js?v=20260621-3"></script>
+  <script src="robot-polisher.js?v=20260621-2"></script>
 </body>
 </html>
