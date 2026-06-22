@@ -41,11 +41,11 @@ function ensureRobotOverlay() {
           </div>
           <label for="polishedContent">수정 제안</label>
           <textarea id="polishedContent" rows="7"></textarea>
-          <p class="robot-note">수정본을 확인한 뒤 이 문장으로 게시할지 선택해주세요.</p>
+          <p class="robot-note">수정본을 확인한 뒤 게시하기 버튼을 누르면 저장됩니다.</p>
         </div>
         <div class="robot-actions" id="robotActions" hidden>
           <button type="button" class="secondary-btn" id="robotCancelBtn">다시 쓰기</button>
-          <button type="button" id="robotConfirmBtn">이 문장으로 올리기</button>
+          <button type="button" id="robotConfirmBtn">게시하기</button>
         </div>
       </div>
     </div>
@@ -98,8 +98,16 @@ function getAuthorNameFromInput(input, user) {
   return author || getDefaultAuthorName(user);
 }
 
-function isRobotAdminAuthor(user) {
-  return typeof window.isAdmin === "function" && window.isAdmin(user);
+function buildRobotAuthorPayload(author, user) {
+  if (typeof window.buildAuthorPayload === "function") {
+    return window.buildAuthorPayload(author, user);
+  }
+
+  return {
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user),
+    authorRole: "user"
+  };
 }
 
 function savePolishedPost(title, content, user, author) {
@@ -107,9 +115,7 @@ function savePolishedPost(title, content, user, author) {
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user ? user.uid : null,
-    author: author || getDefaultAuthorName(user),
-    authorRole: isRobotAdminAuthor(user) ? "admin" : "user"
+    ...buildRobotAuthorPayload(author, user)
   });
 }
 
@@ -118,9 +124,7 @@ function savePolishedComment(postId, content, user, author) {
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
-    uid: user ? user.uid : null,
-    author: author || getDefaultAuthorName(user),
-    authorRole: isRobotAdminAuthor(user) ? "admin" : "user"
+    ...buildRobotAuthorPayload(author, user)
   });
 }
 
@@ -141,8 +145,8 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   if (risk) risk.hidden = true;
   if (riskText) riskText.textContent = "";
   confirmBtn.disabled = false;
-  confirmBtn.textContent = "이 문장으로 올리기";
-  status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.";
+  confirmBtn.textContent = "게시하기";
+  status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요. 검토가 끝나면 게시 버튼이 나타납니다.";
   setRobotState("thinking");
   playRobotVideo();
 
@@ -152,7 +156,7 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
       textarea.value = polishedContent;
       if (riskText) riskText.textContent = riskSummary;
       if (risk) risk.hidden = false;
-      status.textContent = "원문이 어떻게 보일 수 있는지 확인하고, 수정본으로 게시할지 선택해 주세요.";
+      status.textContent = "원문이 어떻게 보일 수 있는지 확인하고, 아래 게시하기 버튼을 누르면 저장됩니다.";
       preview.hidden = false;
       actions.hidden = false;
     })
@@ -162,7 +166,7 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
       textarea.value = content;
       if (riskText) riskText.textContent = "AI가 문장을 분석하지 못했어요. 원문을 한 번 더 확인한 뒤 게시 여부를 선택해주세요.";
       if (risk) risk.hidden = false;
-      status.textContent = "문장을 다듬지 못했어요. 원문으로 게시하거나 다시 시도해 주세요.";
+      status.textContent = "문장을 다듬지 못했어요. 그래도 아래 게시하기 버튼을 누르면 원문으로 저장할 수 있습니다.";
       preview.hidden = false;
       actions.hidden = false;
     });
@@ -181,11 +185,14 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
       })
       .catch((error) => {
         console.error("글 저장 실패:", error);
-        alert("저장 중 문제가 발생했습니다. Firestore 권한을 확인해주세요.");
+        const message = typeof window.getFriendlyError === "function"
+          ? window.getFriendlyError(error)
+          : "저장 중 문제가 발생했습니다. Firestore 권한을 확인해주세요.";
+        alert(message);
       })
       .finally(() => {
         confirmBtn.disabled = false;
-        confirmBtn.textContent = "이 문장으로 올리기";
+        confirmBtn.textContent = "게시하기";
       });
   };
 }

@@ -20,11 +20,15 @@ let openPostId = null;
 let latestPosts = [];
 
 function isAdmin(user = currentUser) {
-  return !!user && ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+  return !!user && ADMIN_EMAILS.includes((user.email || "").trim().toLowerCase());
 }
 
 function isAdminAuthored(data) {
   return data && data.authorRole === "admin";
+}
+
+function getAuthorRole(user = currentUser) {
+  return isAdmin(user) ? "admin" : "user";
 }
 
 function canManageDoc(data, user = currentUser) {
@@ -38,6 +42,14 @@ function getDefaultAuthorName(user = currentUser) {
 function getAuthorNameFromInput(input, user = currentUser) {
   const author = input ? input.value.trim() : "";
   return author || getDefaultAuthorName(user);
+}
+
+function buildAuthorPayload(author, user = currentUser) {
+  return {
+    uid: user ? user.uid : null,
+    author: author || getDefaultAuthorName(user),
+    authorRole: getAuthorRole(user)
+  };
 }
 
 function syncPostAuthorInput(user = currentUser) {
@@ -68,10 +80,16 @@ function getPostTitle(data) {
 
 function getFriendlyError(error) {
   if (error && error.code === "permission-denied") {
-    return "Firestore 보안 규칙 때문에 막혔습니다. Firebase Console에서 관리자 이메일과 작성/수정/삭제 권한을 확인해주세요.";
+    return "Firestore 보안 규칙 때문에 저장이 막혔습니다. 로컬 firestore.rules를 Firebase에 배포했는지 확인해주세요.";
   }
 
-  return "처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+  if (error && error.code === "unauthenticated") {
+    return "로그인 상태를 확인하지 못했습니다. 다시 로그인한 뒤 시도해주세요.";
+  }
+
+  return error && error.message
+    ? `처리 중 문제가 발생했습니다. (${error.code || "error"}: ${error.message})`
+    : "처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
 }
 
 function clearCommentListeners() {
@@ -109,6 +127,7 @@ function submitPost() {
   const titleInput = document.getElementById("postTitleInput");
   const authorInput = document.getElementById("postAuthorInput");
   const contentInput = document.getElementById("postInput");
+  const submitBtn = document.getElementById("submitBtn");
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const user = firebase.auth().currentUser;
@@ -121,9 +140,7 @@ function submitPost() {
     title,
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    uid: user ? user.uid : null,
-    author,
-    authorRole: isAdmin(user) ? "admin" : "user"
+    ...buildAuthorPayload(author, user)
   }).then(() => {
     titleInput.value = "";
     if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
@@ -132,7 +149,17 @@ function submitPost() {
   }).catch((error) => {
     console.error("글 저장 실패:", error);
     alert(getFriendlyError(error));
+  }).finally(() => {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "글 올리기";
+    }
   });
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "올리는 중";
+  }
 }
 
 function submitComment(postId) {
@@ -148,9 +175,7 @@ function submitComment(postId) {
     content,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
-    uid: user ? user.uid : null,
-    author,
-    authorRole: isAdmin(user) ? "admin" : "user"
+    ...buildAuthorPayload(author, user)
   }).then(() => {
     input.value = "";
     if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
@@ -550,6 +575,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
+  document.body.classList.toggle("is-admin-user", isAdmin(user));
 
   syncPostAuthorInput(user);
   startPostListener(user);
@@ -561,10 +587,16 @@ window.submitPost = submitPost;
 window.submitComment = submitComment;
 window.toggleWriteForm = toggleWriteForm;
 window.isAdmin = isAdmin;
+window.buildAuthorPayload = buildAuthorPayload;
+window.getFriendlyError = getFriendlyError;
 
 function createAuthorLabel(data) {
   const label = document.createElement("span");
   label.className = isAdminAuthored(data) ? "author-label admin-author" : "author-label";
+  if (isAdminAuthored(data)) {
+    label.title = "관리자가 작성한 글입니다";
+    label.setAttribute("aria-label", `${data.author || "익명"} 관리자`);
+  }
 
   const name = document.createElement("span");
   name.className = "author-name";
