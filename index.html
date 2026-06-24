@@ -5,10 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>고민 게시판 in 익규 유니버스</title>
-  <link rel="stylesheet" href="style.css?v=20260622-1">
+  <link rel="stylesheet" href="style.css?v=20260624-1">
   <link rel="stylesheet" href="admin-author.css?v=20260622-1">
   <link rel="stylesheet" href="header-mascot.css?v=20260620-3">
-  <link rel="stylesheet" href="robot-polisher.css?v=20260621-1">
+  <link rel="stylesheet" href="robot-polisher.css?v=20260624-1">
   <link rel="stylesheet" href="robot-polisher-parts.css?v=20260611-4">
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -58,9 +58,27 @@
       <button id="toggleWriteBtn" onclick="toggleWriteForm()">글쓰기</button>
     </section>
 
+    <section id="dailyTopicCard" class="daily-topic-card" aria-labelledby="dailyTopicHeading">
+      <div class="daily-topic-copy">
+        <p class="daily-topic-eyebrow">오늘의 고민 주제</p>
+        <h2 id="dailyTopicHeading">오늘 마음에 걸린 말을 조금 다르게 꺼내봐요</h2>
+        <p id="dailyTopicText">오늘 내가 듣고 싶었던 따뜻한 말은?</p>
+      </div>
+      <button id="useDailyTopicBtn" type="button">이 주제로 써보기</button>
+    </section>
+
     <section id="writePanel" class="write-panel" hidden>
       <input id="postTitleInput" type="text" placeholder="제목을 입력하세요" maxlength="80" />
       <input id="postAuthorInput" type="text" placeholder="작성자 (비워두면 익명)" maxlength="40" />
+      <label class="tone-style-field" for="toneStyleSelect">
+        <span>AI 말투 스타일</span>
+        <select id="toneStyleSelect" class="tone-style-select">
+          <option value="부드럽게">부드럽게</option>
+          <option value="솔직하지만 예의 있게">솔직하지만 예의 있게</option>
+          <option value="친구처럼">친구처럼</option>
+          <option value="짧고 담백하게">짧고 담백하게</option>
+        </select>
+      </label>
       <textarea id="postInput" placeholder="거친 말도 괜찮아요. 골렘이 따듯한 댓글로 다듬어줄게요..." rows="5"></textarea>
       <div class="write-actions">
         <button class="secondary-btn" onclick="toggleWriteForm(false)">닫기</button>
@@ -72,7 +90,7 @@
   </main>
 
   <script src="background.js?v=20260620-3"></script>
-  <script src="script.js?v=20260622-1"></script>
-  <script src="robot-polisher.js?v=20260622-1"></script>
+  <script src="script.js?v=20260624-1"></script>
+  <script src="robot-polisher.js?v=20260624-1"></script>
 </body>
 </html>

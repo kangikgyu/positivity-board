@@ -8,6 +8,13 @@ const MAX_CONTENT_LENGTH = 1200;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.4-mini";
 const SAFE_FALLBACK_COMMENT = "저는 조금 다르게 느꼈어요. 어떤 점에서 그렇게 생각했는지 더 들어보고 싶어요.";
 const SAFE_FALLBACK_RISK_SUMMARY = "원문이 상대에게 다소 강하게 느껴질 수 있어 표현을 조금 부드럽게 조정했어요.";
+const DEFAULT_TONE_STYLE = "부드럽게";
+const TONE_STYLE_INSTRUCTIONS = {
+  "부드럽게": "상대가 방어적으로 느끼지 않도록 차분하고 온화한 존댓말로 다듬어.",
+  "솔직하지만 예의 있게": "작성자의 불편함과 반대 의견은 분명히 남기되, 비난처럼 들리는 표현만 예의 있게 바꿔.",
+  "친구처럼": "친한 사람에게 말하듯 자연스럽고 편안하게 다듬되, 조롱이나 반말로 선을 넘지 마.",
+  "짧고 담백하게": "핵심 의미만 남기고 군더더기를 줄여 짧고 담백하게 다듬어."
+};
 
 const FORBIDDEN_FEEDBACK_TERMS = [
   "문제",
@@ -25,6 +32,12 @@ const FORBIDDEN_FEEDBACK_TERMS = [
 
 function normalizeContent(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeToneStyle(value) {
+  return Object.prototype.hasOwnProperty.call(TONE_STYLE_INSTRUCTIONS, value)
+    ? value
+    : DEFAULT_TONE_STYLE;
 }
 
 function includesForbiddenFeedback(text) {
@@ -59,7 +72,8 @@ function parsePolishReview(rawContent) {
   };
 }
 
-async function createPolishReview(client, content, extraInstruction = "") {
+async function createPolishReview(client, content, style = DEFAULT_TONE_STYLE, extraInstruction = "") {
+  const toneStyle = normalizeToneStyle(style);
   const response = await client.responses.create({
     model: OPENAI_MODEL,
     temperature: 0.4,
@@ -90,6 +104,7 @@ async function createPolishReview(client, content, extraInstruction = "") {
         content: [
           "너는 한국어 게시판 댓글을 실제 사람이 남길 법한 자연스러운 댓글로 다듬는 편집자야.",
           "원문의 모든 문장과 전체 흐름을 읽고, 공격적인 표현만 부드럽게 바꿔.",
+          `사용자가 선택한 말투 스타일은 '${toneStyle}'이야. ${TONE_STYLE_INSTRUCTIONS[toneStyle]}`,
           "공격적이지 않은 문장, 선의의 문장, 맥락을 만드는 문장은 절대 삭제하거나 요약하지 말고 최종문에 보존해.",
           "욕설, 조롱, 인신공격, 비꼼, 몰아붙이는 말투만 제거해.",
           "원문이 질문이면 부드러운 질문으로 유지하고, 반대 의견이면 부드러운 반대 의견으로 유지해.",
@@ -127,6 +142,7 @@ async function createPolishReview(client, content, extraInstruction = "") {
 
 exports.polishText = onCall({ secrets: [openaiApiKey] }, async (request) => {
   const content = normalizeContent(request.data && request.data.content);
+  const style = normalizeToneStyle(request.data && request.data.style);
 
   if (!content) {
     throw new HttpsError("invalid-argument", "다듬을 내용을 입력해주세요.");
@@ -142,7 +158,7 @@ exports.polishText = onCall({ secrets: [openaiApiKey] }, async (request) => {
   const client = new OpenAI({ apiKey: openaiApiKey.value() });
 
   try {
-    let review = await createPolishReview(client, content);
+    let review = await createPolishReview(client, content, style);
 
     if (
       review.polishedContent
@@ -151,6 +167,7 @@ exports.polishText = onCall({ secrets: [openaiApiKey] }, async (request) => {
       review = await createPolishReview(
         client,
         content,
+        style,
         "다시 써. 공격적이지 않은 문장은 삭제하지 말고 그대로 살려. 원문과 수정문을 비교하지 말고, 화살표나 '수정:' 같은 표시 없이 최종 게시글 전체만 polishedContent에 넣어. 개소리, 지옥, 쌍 같은 욕설이나 극단적 표현은 부드러운 불일치나 답답함의 표현으로 바꿔. 앞뒤 감정이 충돌하면 '다만 지금은 현실이 너무 답답하게 느껴져서, 그 말에 선뜻 공감하기 어렵습니다'처럼 자연스럽게 연결해."
       );
     }

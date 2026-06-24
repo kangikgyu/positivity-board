@@ -1,8 +1,22 @@
 const robotDb = firebase.firestore();
 const polishTextFunction = firebase.functions().httpsCallable("polishText");
+const DEFAULT_TONE_STYLE = "부드럽게";
+const ROBOT_TONE_STYLES = ["부드럽게", "솔직하지만 예의 있게", "친구처럼", "짧고 담백하게"];
 
-async function polishText(content) {
-  const result = await polishTextFunction({ content });
+function normalizeToneStyle(style) {
+  return ROBOT_TONE_STYLES.includes(style) ? style : DEFAULT_TONE_STYLE;
+}
+
+function getSelectedToneStyle(selectId) {
+  const select = document.getElementById(selectId);
+  return normalizeToneStyle(select ? select.value : DEFAULT_TONE_STYLE);
+}
+
+async function polishText(content, style = DEFAULT_TONE_STYLE) {
+  const result = await polishTextFunction({
+    content,
+    style: normalizeToneStyle(style)
+  });
   const data = result && result.data ? result.data : {};
   const polishedContent = data.polishedContent || "";
 
@@ -35,12 +49,18 @@ function ensureRobotOverlay() {
         <h2 id="robotTitle">로봇이 문장을 정돈하는 중</h2>
         <p id="robotStatus">잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요.</p>
         <div class="robot-preview" id="robotPreview" hidden>
-          <div class="robot-risk" id="robotRisk" hidden>
+          <article class="robot-preview-card robot-original-card">
+            <strong>원문</strong>
+            <p id="robotOriginalText"></p>
+          </article>
+          <article class="robot-preview-card robot-risk" id="robotRisk" hidden>
             <strong>상대에게 이렇게 보일 수 있어요</strong>
             <p id="robotRiskText"></p>
-          </div>
-          <label for="polishedContent">수정 제안</label>
-          <textarea id="polishedContent" rows="7"></textarea>
+          </article>
+          <article class="robot-preview-card robot-suggestion-card">
+            <label for="polishedContent">수정 제안</label>
+            <textarea id="polishedContent" rows="7"></textarea>
+          </article>
           <p class="robot-note">수정본을 확인한 뒤 게시하기 버튼을 누르면 저장됩니다.</p>
         </div>
         <div class="robot-actions" id="robotActions" hidden>
@@ -128,10 +148,11 @@ function savePolishedComment(postId, content, user, author) {
   });
 }
 
-function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리는 중" }) {
+function openRobotPolisher({ content, style = DEFAULT_TONE_STYLE, onConfirm, onSuccess, savingText = "올리는 중" }) {
   const overlay = ensureRobotOverlay();
   const status = document.getElementById("robotStatus");
   const preview = document.getElementById("robotPreview");
+  const originalText = document.getElementById("robotOriginalText");
   const textarea = document.getElementById("polishedContent");
   const risk = document.getElementById("robotRisk");
   const riskText = document.getElementById("robotRiskText");
@@ -144,13 +165,14 @@ function openRobotPolisher({ content, onConfirm, onSuccess, savingText = "올리
   actions.hidden = true;
   if (risk) risk.hidden = true;
   if (riskText) riskText.textContent = "";
+  if (originalText) originalText.textContent = content;
   confirmBtn.disabled = false;
   confirmBtn.textContent = "게시하기";
   status.textContent = "잠시만 기다려 주세요. 문장을 조금 더 따뜻하고 배려 있게 다듬고 있어요. 검토가 끝나면 게시 버튼이 나타납니다.";
   setRobotState("thinking");
   playRobotVideo();
 
-  polishText(content)
+  polishText(content, style)
     .then(({ polishedContent, riskSummary }) => {
       setRobotState("ready");
       textarea.value = polishedContent;
@@ -203,6 +225,7 @@ window.submitPost = function submitPostWithRobot() {
   const contentInput = document.getElementById("postInput");
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
+  const style = getSelectedToneStyle("toneStyleSelect");
   const user = firebase.auth().currentUser;
   const author = getAuthorNameFromInput(authorInput, user);
 
@@ -211,6 +234,7 @@ window.submitPost = function submitPostWithRobot() {
 
   openRobotPolisher({
     content,
+    style,
     savingText: "글 올리는 중",
     onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user, author),
     onSuccess: () => {
@@ -227,12 +251,14 @@ window.submitComment = function submitCommentWithRobot(postId) {
   const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
+  const style = getSelectedToneStyle(`commentToneStyleSelect-${postId}`);
   const author = getAuthorNameFromInput(authorInput, user);
 
   if (!content) return alert("댓글을 입력해주세요.");
 
   openRobotPolisher({
     content,
+    style,
     savingText: "댓글 올리는 중",
     onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user, author),
     onSuccess: () => {
