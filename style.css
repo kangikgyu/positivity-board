@@ -181,7 +181,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -362,6 +363,89 @@ h1 span {
   margin: 0;
   color: #2d6e7a;
   font-size: 1rem;
+}
+
+.admin-dashboard {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid rgba(137, 192, 204, 0.9);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(240, 251, 253, 0.98), rgba(255, 249, 222, 0.96));
+  box-shadow: 0 5px 16px rgba(89, 130, 140, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.admin-dashboard[hidden] {
+  display: none;
+}
+
+.admin-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-dashboard-eyebrow {
+  margin: 0 0 4px;
+  color: #f97316;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-dashboard h2 {
+  margin: 0;
+  color: #1f6671;
+  font-size: 1rem;
+}
+
+.admin-dashboard-header button {
+  flex: 0 0 auto;
+  min-width: 94px;
+  padding: 7px 11px;
+  border: 1px solid #6aa9b5;
+  border-radius: 999px;
+  background: linear-gradient(#69bccb, #3e94a3);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-stat-card {
+  display: grid;
+  gap: 5px;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid rgba(207, 226, 231, 0.95);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.admin-stat-card span {
+  color: #667b80;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.admin-stat-card strong {
+  color: #145f6d;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.admin-dashboard-status {
+  margin: 0;
+  color: #78939a;
+  font-size: 0.78rem;
 }
 
 .daily-topic-card {
@@ -577,6 +661,37 @@ textarea {
   white-space: pre-wrap;
 }
 
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.reaction-btn {
+  padding: 5px 9px;
+  border: 1px solid #c7dfe4;
+  border-radius: 999px;
+  background: #fffdf2;
+  color: #45656b;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.reaction-btn:hover:not(:disabled) {
+  border-color: #f2a431;
+  background: #fff6d9;
+  color: #875400;
+}
+
+.reaction-btn.is-reacted,
+.reaction-btn:disabled {
+  border-color: #f2d58b;
+  background: #fff0b7;
+  color: #875400;
+  opacity: 0.88;
+}
+
 .delete-btn {
   min-width: 74px;
   margin-bottom: 10px;
@@ -732,6 +847,18 @@ textarea {
   .toolbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-dashboard-header {
+    display: grid;
+  }
+
+  .admin-dashboard-header button {
+    width: 100%;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .daily-topic-card {

@@ -47,6 +47,40 @@ service cloud.firestore {
         && request.resource.data.editedBy.size() <= 120;
     }
 
+    function existingReactions() {
+      return ('reactions' in resource.data) ? resource.data.reactions : {};
+    }
+
+    function newReactionCount(reaction) {
+      return request.resource.data.reactions.get(reaction, 0);
+    }
+
+    function oldReactionCount(reaction) {
+      return existingReactions().get(reaction, 0);
+    }
+
+    function isValidReactionCount(reaction) {
+      return newReactionCount(reaction) is int
+        && newReactionCount(reaction) >= oldReactionCount(reaction)
+        && newReactionCount(reaction) <= oldReactionCount(reaction) + 1;
+    }
+
+    function isValidReactionMap() {
+      return request.resource.data.reactions is map
+        && request.resource.data.reactions.keys().hasOnly(['공감해요', '응원해요', '따뜻해요', '생각해볼게요'])
+        && request.resource.data.reactions.diff(existingReactions()).affectedKeys().size() == 1
+        && request.resource.data.reactions.diff(existingReactions()).affectedKeys().hasOnly(['공감해요', '응원해요', '따뜻해요', '생각해볼게요'])
+        && isValidReactionCount('공감해요')
+        && isValidReactionCount('응원해요')
+        && isValidReactionCount('따뜻해요')
+        && isValidReactionCount('생각해볼게요');
+    }
+
+    function isValidReactionUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        && isValidReactionMap();
+    }
+
     function isValidPostUpdate() {
       return keepsPostIdentity()
         && request.resource.data.title is string
@@ -97,13 +131,13 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if true;
       allow create: if isValidPostCreate();
-      allow update: if (isOwner() || isAdmin()) && isValidPostUpdate();
+      allow update: if ((isOwner() || isAdmin()) && isValidPostUpdate()) || isValidReactionUpdate();
       allow delete: if isOwner() || isAdmin();
 
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isValidCommentCreate();
-        allow update: if (isOwner() || isAdmin()) && isValidCommentUpdate();
+        allow update: if ((isOwner() || isAdmin()) && isValidCommentUpdate()) || isValidReactionUpdate();
         allow delete: if isOwner() || isAdmin();
       }
     }
