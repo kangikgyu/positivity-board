@@ -364,6 +364,55 @@ h1 span {
   font-size: 1rem;
 }
 
+.daily-topic-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 10px;
+  padding: 14px;
+  border: 1px solid rgba(246, 190, 79, 0.78);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 249, 217, 0.98), rgba(236, 250, 253, 0.96));
+  box-shadow: 0 5px 16px rgba(89, 130, 140, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.daily-topic-copy {
+  min-width: 0;
+}
+
+.daily-topic-eyebrow {
+  margin: 0 0 5px;
+  color: #a86400;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.daily-topic-card h2 {
+  margin: 0 0 6px;
+  color: #1f6671;
+  font-size: 0.98rem;
+}
+
+.daily-topic-card p:last-child {
+  margin: 0;
+  color: #455f65;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.daily-topic-card button {
+  flex: 0 0 auto;
+  min-width: 132px;
+  padding: 8px 12px;
+  border: 1px solid #f2a431;
+  border-radius: 999px;
+  background: linear-gradient(#fff0b7, #ffd06b);
+  color: #875400;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
 .write-panel {
   display: grid;
   gap: 8px;
@@ -379,7 +428,8 @@ h1 span {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   border: 1px solid #bed6db;
   border-radius: 4px;
@@ -387,6 +437,21 @@ textarea {
   color: #333;
   padding: 8px 9px;
   font-size: 0.9rem;
+}
+
+.tone-style-field {
+  display: grid;
+  gap: 5px;
+  color: #2d6e7a;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.tone-style-select {
+  min-height: 38px;
+  border-color: #d6bf78;
+  background: #fffdf2;
+  color: #3d4b4f;
 }
 
 textarea {
@@ -567,6 +632,10 @@ textarea {
   grid-template-columns: 1fr auto;
 }
 
+.comment-tone-style-field {
+  grid-column: 1 / -1;
+}
+
 .comment-form textarea,
 .comment-edit-form textarea,
 .post-edit-form textarea {
@@ -663,6 +732,14 @@ textarea {
   .toolbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .daily-topic-card {
+    display: grid;
+  }
+
+  .daily-topic-card button {
+    width: 100%;
   }
 
   .col-number {

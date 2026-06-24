@@ -19,6 +19,18 @@ let currentUser = null;
 let openPostId = null;
 let latestPosts = [];
 
+const TONE_STYLES = ["부드럽게", "솔직하지만 예의 있게", "친구처럼", "짧고 담백하게"];
+const DAILY_TOPICS = [
+  "오늘 누군가에게 하고 싶었지만 참았던 말은?",
+  "요즘 나를 가장 지치게 하는 말은?",
+  "조금 속상했지만 부드럽게 말하고 싶은 일은?",
+  "누군가에게 고맙다고 말하고 싶은 순간은?",
+  "오늘 내가 듣고 싶었던 따뜻한 말은?",
+  "친구에게 서운했지만 차분히 말하고 싶은 일은?",
+  "나를 힘들게 한 상황을 다르게 표현해 본다면?",
+  "오늘 나에게 해주고 싶은 응원의 말은?"
+];
+
 function isAdmin(user = currentUser) {
   return !!user && ADMIN_EMAILS.includes((user.email || "").trim().toLowerCase());
 }
@@ -121,6 +133,65 @@ function toggleWriteForm(forceOpen) {
   if (shouldOpen) {
     document.getElementById("postTitleInput")?.focus();
   }
+}
+
+function createToneStyleField(selectId) {
+  const label = document.createElement("label");
+  label.className = "tone-style-field comment-tone-style-field";
+  label.htmlFor = selectId;
+
+  const text = document.createElement("span");
+  text.textContent = "AI 말투 스타일";
+
+  const select = document.createElement("select");
+  select.id = selectId;
+  select.className = "tone-style-select";
+
+  TONE_STYLES.forEach((style) => {
+    const option = document.createElement("option");
+    option.value = style;
+    option.textContent = style;
+    select.appendChild(option);
+  });
+
+  label.appendChild(text);
+  label.appendChild(select);
+  return label;
+}
+
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDailyTopic(date = new Date()) {
+  const dateKey = getLocalDateKey(date);
+  const seed = Array.from(dateKey).reduce((total, char) => total + char.charCodeAt(0), 0);
+  return DAILY_TOPICS[seed % DAILY_TOPICS.length];
+}
+
+function initDailyTopicCard() {
+  const card = document.getElementById("dailyTopicCard");
+  const topicText = document.getElementById("dailyTopicText");
+  const useBtn = document.getElementById("useDailyTopicBtn");
+  if (!card || !topicText || !useBtn) return;
+
+  const topic = getDailyTopic();
+  topicText.textContent = topic;
+
+  useBtn.onclick = () => {
+    const titleInput = document.getElementById("postTitleInput");
+    const contentInput = document.getElementById("postInput");
+
+    toggleWriteForm(true);
+    if (titleInput && !titleInput.value.trim()) titleInput.value = topic;
+    if (contentInput) {
+      contentInput.placeholder = `오늘의 주제: ${topic}\n\n떠오르는 말을 편하게 적어주세요. 골렘이 말투를 다듬어줄게요.`;
+      contentInput.focus();
+    }
+  };
 }
 
 function submitPost() {
@@ -489,6 +560,7 @@ function renderPostRow(post, index, tableBody) {
     submitBtn.onclick = () => window.submitComment(postId);
 
     form.appendChild(authorInput);
+    form.appendChild(createToneStyleField(`commentToneStyleSelect-${postId}`));
     form.appendChild(input);
     form.appendChild(submitBtn);
 
@@ -589,6 +661,8 @@ window.toggleWriteForm = toggleWriteForm;
 window.isAdmin = isAdmin;
 window.buildAuthorPayload = buildAuthorPayload;
 window.getFriendlyError = getFriendlyError;
+
+initDailyTopicCard();
 
 function createAuthorLabel(data) {
   const label = document.createElement("span");

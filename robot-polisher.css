@@ -489,10 +489,39 @@
 
 .robot-preview {
   display: grid;
-  gap: 7px;
+  gap: 9px;
   margin-top: 12px;
 }
 
+.robot-preview-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 11px;
+  border: 1px solid rgba(157, 198, 207, 0.78);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.robot-preview-card strong,
+.robot-preview-card label {
+  color: #2d6e7a;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.robot-original-card {
+  background: #f7fcfd;
+}
+
+.robot-original-card p {
+  max-height: 104px;
+  margin: 0;
+  overflow: auto;
+  color: #425a60;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
 
 .robot-risk {
   display: grid;
@@ -520,10 +549,8 @@
   line-height: 1.45;
 }
 
-.robot-preview label {
-  color: #2d6e7a;
-  font-size: 0.85rem;
-  font-weight: 900;
+.robot-suggestion-card {
+  background: #ffffff;
 }
 
 .robot-preview textarea {
