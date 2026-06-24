@@ -58,6 +58,39 @@
       <button id="toggleWriteBtn" onclick="toggleWriteForm()">글쓰기</button>
     </section>
 
+    <section id="adminDashboard" class="admin-dashboard" hidden aria-labelledby="adminDashboardHeading">
+      <div class="admin-dashboard-header">
+        <div>
+          <p class="admin-dashboard-eyebrow">admin dashboard</p>
+          <h2 id="adminDashboardHeading">운영자 대시보드</h2>
+        </div>
+        <button id="refreshAdminDashboardBtn" type="button">새로고침</button>
+      </div>
+      <div id="adminDashboardStats" class="admin-stats-grid">
+        <article class="admin-stat-card">
+          <span>전체 게시글</span>
+          <strong id="totalPostCount">-</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>전체 댓글</span>
+          <strong id="totalCommentCount">-</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>오늘 게시글</span>
+          <strong id="todayPostCount">-</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>오늘 댓글</span>
+          <strong id="todayCommentCount">-</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>관리자 작성 글</span>
+          <strong id="adminPostCount">-</strong>
+        </article>
+      </div>
+      <p id="adminDashboardStatus" class="admin-dashboard-status">관리자 로그인 시 한 번 계산됩니다.</p>
+    </section>
+
     <section id="dailyTopicCard" class="daily-topic-card" aria-labelledby="dailyTopicHeading">
       <div class="daily-topic-copy">
         <p class="daily-topic-eyebrow">오늘의 고민 주제</p>
@@ -90,7 +123,7 @@
   </main>
 
   <script src="background.js?v=20260620-3"></script>
-  <script src="script.js?v=20260624-1"></script>
+  <script src="script.js?v=20260624-2"></script>
   <script src="robot-polisher.js?v=20260624-1"></script>
 </body>
 </html>

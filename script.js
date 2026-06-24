@@ -18,8 +18,10 @@ let unsubscribeComments = [];
 let currentUser = null;
 let openPostId = null;
 let latestPosts = [];
+let adminDashboardLoaded = false;
 
 const TONE_STYLES = ["부드럽게", "솔직하지만 예의 있게", "친구처럼", "짧고 담백하게"];
+const REACTION_TYPES = ["공감해요", "응원해요", "따뜻해요", "생각해볼게요"];
 const DAILY_TOPICS = [
   "오늘 누군가에게 하고 싶었지만 참았던 말은?",
   "요즘 나를 가장 지치게 하는 말은?",
@@ -81,6 +83,21 @@ function formatDate(value) {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function toDate(value) {
+  if (!value) return null;
+  return value.toDate ? value.toDate() : new Date(value);
+}
+
+function isToday(value) {
+  const date = toDate(value);
+  if (!date || Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate();
 }
 
 function getPostTitle(data) {
@@ -192,6 +209,172 @@ function initDailyTopicCard() {
       contentInput.focus();
     }
   };
+}
+
+function resetAdminDashboardValues() {
+  ["totalPostCount", "totalCommentCount", "todayPostCount", "todayCommentCount", "adminPostCount"]
+    .forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = "-";
+    });
+}
+
+function setAdminDashboardStatus(message) {
+  const status = document.getElementById("adminDashboardStatus");
+  if (status) status.textContent = message;
+}
+
+function setAdminDashboardVisibility(user = currentUser) {
+  const dashboard = document.getElementById("adminDashboard");
+  if (!dashboard) return;
+
+  const shouldShow = isAdmin(user);
+  dashboard.hidden = !shouldShow;
+
+  if (!shouldShow) {
+    adminDashboardLoaded = false;
+    resetAdminDashboardValues();
+    setAdminDashboardStatus("관리자 로그인 시 한 번 계산됩니다.");
+  }
+}
+
+async function refreshAdminDashboard() {
+  if (!isAdmin()) return;
+
+  const refreshBtn = document.getElementById("refreshAdminDashboardBtn");
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = "계산 중";
+  }
+  setAdminDashboardStatus("게시글과 댓글 수를 계산하는 중입니다...");
+
+  try {
+    const [postSnapshot, commentSnapshot] = await Promise.all([
+      db.collection("posts").get(),
+      db.collectionGroup("comments").get()
+    ]);
+
+    const stats = {
+      totalPosts: postSnapshot.size,
+      totalComments: commentSnapshot.size,
+      todayPosts: 0,
+      todayComments: 0,
+      adminPosts: 0
+    };
+
+    postSnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (isToday(data.createdAt)) stats.todayPosts += 1;
+      if (isAdminAuthored(data)) stats.adminPosts += 1;
+    });
+
+    commentSnapshot.forEach((doc) => {
+      if (isToday(doc.data().createdAt)) stats.todayComments += 1;
+    });
+
+    const statMap = {
+      totalPostCount: stats.totalPosts,
+      totalCommentCount: stats.totalComments,
+      todayPostCount: stats.todayPosts,
+      todayCommentCount: stats.todayComments,
+      adminPostCount: stats.adminPosts
+    };
+
+    Object.entries(statMap).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = String(value);
+    });
+
+    adminDashboardLoaded = true;
+    setAdminDashboardStatus(`마지막 계산: ${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`);
+  } catch (error) {
+    console.error("관리자 대시보드 계산 실패:", error);
+    setAdminDashboardStatus(getFriendlyError(error));
+  } finally {
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = "새로고침";
+    }
+  }
+}
+
+function initAdminDashboard() {
+  const refreshBtn = document.getElementById("refreshAdminDashboardBtn");
+  if (refreshBtn) refreshBtn.onclick = refreshAdminDashboard;
+  setAdminDashboardVisibility(currentUser);
+}
+
+function getReactionStorageKey(targetType, postId, commentId, reactionType) {
+  return commentId
+    ? `positivityReaction:${targetType}:${postId}:${commentId}:${reactionType}`
+    : `positivityReaction:${targetType}:${postId}:${reactionType}`;
+}
+
+function hasReacted(targetType, postId, commentId, reactionType) {
+  return localStorage.getItem(getReactionStorageKey(targetType, postId, commentId, reactionType)) === "1";
+}
+
+function markReacted(targetType, postId, commentId, reactionType) {
+  localStorage.setItem(getReactionStorageKey(targetType, postId, commentId, reactionType), "1");
+}
+
+function getReactionRef(targetType, postId, commentId) {
+  return targetType === "comment"
+    ? db.collection("posts").doc(postId).collection("comments").doc(commentId)
+    : db.collection("posts").doc(postId);
+}
+
+async function addReaction(targetType, postId, commentId, reactionType) {
+  if (!REACTION_TYPES.includes(reactionType)) return false;
+  if (hasReacted(targetType, postId, commentId, reactionType)) return false;
+
+  const ref = getReactionRef(targetType, postId, commentId);
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists) throw new Error("이미 삭제된 글입니다.");
+
+      const reactions = snapshot.data().reactions || {};
+      const nextCount = Number(reactions[reactionType] || 0) + 1;
+      transaction.update(ref, {
+        [`reactions.${reactionType}`]: nextCount
+      });
+    });
+
+    markReacted(targetType, postId, commentId, reactionType);
+    return true;
+  } catch (error) {
+    console.error("반응 저장 실패:", error);
+    alert(getFriendlyError(error));
+    return false;
+  }
+}
+
+function createReactionBar(targetType, postId, data, commentId = null) {
+  const bar = document.createElement("div");
+  bar.className = "reaction-bar";
+
+  const reactions = data.reactions || {};
+  REACTION_TYPES.forEach((reactionType) => {
+    const button = document.createElement("button");
+    const count = Number(reactions[reactionType] || 0);
+    const alreadyReacted = hasReacted(targetType, postId, commentId, reactionType);
+    button.type = "button";
+    button.className = alreadyReacted ? "reaction-btn is-reacted" : "reaction-btn";
+    button.disabled = alreadyReacted;
+    button.textContent = `${reactionType} ${count}`;
+    button.onclick = async () => {
+      button.disabled = true;
+      const saved = await addReaction(targetType, postId, commentId, reactionType);
+      if (!saved && !hasReacted(targetType, postId, commentId, reactionType)) {
+        button.disabled = false;
+      }
+    };
+    bar.appendChild(button);
+  });
+
+  return bar;
 }
 
 function submitPost() {
@@ -444,6 +627,7 @@ function renderComments(postId, commentsBox, user) {
 
         item.appendChild(meta);
         item.appendChild(content);
+        item.appendChild(createReactionBar("comment", postId, comment, commentDoc.id));
 
         if (canManageDoc(comment, user)) {
           const editBtn = document.createElement("button");
@@ -515,6 +699,7 @@ function renderPostRow(post, index, tableBody) {
     content.className = "post-content";
     content.textContent = data.content || "내용이 없습니다.";
     detail.appendChild(content);
+    detail.appendChild(createReactionBar("post", postId, data));
 
     if (canManageDoc(data, currentUser)) {
       const editBtn = document.createElement("button");
@@ -648,9 +833,14 @@ firebase.auth().onAuthStateChanged((user) => {
   if (loginBtn) loginBtn.style.display = user ? "none" : "inline-block";
   if (logoutBtn) logoutBtn.style.display = user ? "inline-block" : "none";
   document.body.classList.toggle("is-admin-user", isAdmin(user));
+  setAdminDashboardVisibility(user);
 
   syncPostAuthorInput(user);
   startPostListener(user);
+
+  if (isAdmin(user) && !adminDashboardLoaded) {
+    refreshAdminDashboard();
+  }
 });
 
 window.login = login;
@@ -663,6 +853,7 @@ window.buildAuthorPayload = buildAuthorPayload;
 window.getFriendlyError = getFriendlyError;
 
 initDailyTopicCard();
+initAdminDashboard();
 
 function createAuthorLabel(data) {
   const label = document.createElement("span");
