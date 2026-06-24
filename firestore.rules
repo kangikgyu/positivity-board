@@ -141,5 +141,9 @@ service cloud.firestore {
         allow delete: if isOwner() || isAdmin();
       }
     }
+
+    match /{path=**}/comments/{commentId} {
+      allow read: if true;
+    }
   }
 }
