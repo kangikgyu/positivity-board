@@ -107,9 +107,9 @@ function getPostTitle(data) {
   return firstLine.length > 40 ? `${firstLine.slice(0, 40)}...` : firstLine;
 }
 
-function getFriendlyError(error) {
+function getFriendlyError(error, actionText = "처리") {
   if (error && error.code === "permission-denied") {
-    return "Firestore 보안 규칙 때문에 저장이 막혔습니다. 로컬 firestore.rules를 Firebase에 배포했는지 확인해주세요.";
+    return `Firestore 보안 규칙 때문에 ${actionText}이(가) 막혔습니다. 로컬 firestore.rules를 Firebase에 배포했는지 확인해주세요.`;
   }
 
   if (error && error.code === "unauthenticated") {
@@ -117,8 +117,8 @@ function getFriendlyError(error) {
   }
 
   return error && error.message
-    ? `처리 중 문제가 발생했습니다. (${error.code || "error"}: ${error.message})`
-    : "처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    ? `${actionText} 중 문제가 발생했습니다. (${error.code || "error"}: ${error.message})`
+    : `${actionText} 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.`;
 }
 
 function clearCommentListeners() {
@@ -289,7 +289,7 @@ async function refreshAdminDashboard() {
     setAdminDashboardStatus(`마지막 계산: ${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`);
   } catch (error) {
     console.error("관리자 대시보드 계산 실패:", error);
-    setAdminDashboardStatus(getFriendlyError(error));
+    setAdminDashboardStatus(getFriendlyError(error, "대시보드 계산"));
   } finally {
     if (refreshBtn) {
       refreshBtn.disabled = false;
