@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>고민 게시판 in 익규 유니버스</title>
-  <link rel="stylesheet" href="style.css?v=20260624-1">
+  <link rel="stylesheet" href="style.css?v=20260625-1">
   <link rel="stylesheet" href="admin-author.css?v=20260622-1">
   <link rel="stylesheet" href="header-mascot.css?v=20260620-3">
   <link rel="stylesheet" href="robot-polisher.css?v=20260624-1">
@@ -97,7 +97,10 @@
         <h2 id="dailyTopicHeading">오늘 마음에 걸린 말을 조금 다르게 꺼내봐요</h2>
         <p id="dailyTopicText">오늘 내가 듣고 싶었던 따뜻한 말은?</p>
       </div>
-      <button id="useDailyTopicBtn" type="button">이 주제로 써보기</button>
+      <div class="daily-topic-actions">
+        <button id="shuffleDailyTopicBtn" type="button" class="secondary-topic-btn">다른 주제 보기</button>
+        <button id="useDailyTopicBtn" type="button">이 주제로 써보기</button>
+      </div>
     </section>
 
     <section id="writePanel" class="write-panel" hidden>
@@ -112,6 +115,8 @@
           <option value="짧고 담백하게">짧고 담백하게</option>
         </select>
       </label>
+      <div id="postEmojiPicker" class="emoji-picker" aria-label="글쓰기 이모지 추가"></div>
+      <div id="postStickerPicker" class="sticker-picker" aria-label="글쓰기 감정 스티커 선택"></div>
       <textarea id="postInput" placeholder="거친 말도 괜찮아요. 골렘이 따듯한 댓글로 다듬어줄게요..." rows="5"></textarea>
       <div class="write-actions">
         <button class="secondary-btn" onclick="toggleWriteForm(false)">닫기</button>
@@ -123,7 +128,7 @@
   </main>
 
   <script src="background.js?v=20260620-3"></script>
-  <script src="script.js?v=20260625-1"></script>
-  <script src="robot-polisher.js?v=20260624-1"></script>
+  <script src="script.js?v=20260625-2"></script>
+  <script src="robot-polisher.js?v=20260625-1"></script>
 </body>
 </html>

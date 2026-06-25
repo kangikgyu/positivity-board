@@ -130,18 +130,34 @@ function buildRobotAuthorPayload(author, user) {
   };
 }
 
-function savePolishedPost(title, content, user, author) {
+function getSelectedSticker(pickerId) {
+  if (typeof window.getSelectedSticker === "function") {
+    return window.getSelectedSticker(pickerId);
+  }
+
+  return null;
+}
+
+function resetStickerPicker(pickerId) {
+  if (typeof window.resetStickerPicker === "function") {
+    window.resetStickerPicker(pickerId);
+  }
+}
+
+function savePolishedPost(title, content, user, author, sticker) {
   return robotDb.collection("posts").add({
     title,
     content,
+    sticker,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     ...buildRobotAuthorPayload(author, user)
   });
 }
 
-function savePolishedComment(postId, content, user, author) {
+function savePolishedComment(postId, content, user, author, sticker) {
   return robotDb.collection("posts").doc(postId).collection("comments").add({
     content,
+    sticker,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
     ...buildRobotAuthorPayload(author, user)
@@ -226,6 +242,7 @@ window.submitPost = function submitPostWithRobot() {
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const style = getSelectedToneStyle("toneStyleSelect");
+  const sticker = getSelectedSticker("postStickerPicker");
   const user = firebase.auth().currentUser;
   const author = getAuthorNameFromInput(authorInput, user);
 
@@ -236,11 +253,12 @@ window.submitPost = function submitPostWithRobot() {
     content,
     style,
     savingText: "글 올리는 중",
-    onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user, author),
+    onConfirm: (polishedContent) => savePolishedPost(title, polishedContent, user, author, sticker),
     onSuccess: () => {
       titleInput.value = "";
       if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
       contentInput.value = "";
+      resetStickerPicker("postStickerPicker");
       if (window.toggleWriteForm) window.toggleWriteForm(false);
     }
   });
@@ -252,6 +270,7 @@ window.submitComment = function submitCommentWithRobot(postId) {
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
   const style = getSelectedToneStyle(`commentToneStyleSelect-${postId}`);
+  const sticker = getSelectedSticker(`commentStickerPicker-${postId}`);
   const author = getAuthorNameFromInput(authorInput, user);
 
   if (!content) return alert("댓글을 입력해주세요.");
@@ -260,9 +279,10 @@ window.submitComment = function submitCommentWithRobot(postId) {
     content,
     style,
     savingText: "댓글 올리는 중",
-    onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user, author),
+    onConfirm: (polishedContent) => savePolishedComment(postId, polishedContent, user, author, sticker),
     onSuccess: () => {
       input.value = "";
+      resetStickerPicker(`commentStickerPicker-${postId}`);
       if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
     }
   });
