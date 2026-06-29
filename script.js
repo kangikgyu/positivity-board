@@ -503,33 +503,45 @@ function markReacted(targetType, postId, commentId, reactionType) {
   localStorage.setItem(getReactionStorageKey(targetType, postId, commentId, reactionType), "1");
 }
 
+function unmarkReacted(targetType, postId, commentId, reactionType) {
+  localStorage.removeItem(getReactionStorageKey(targetType, postId, commentId, reactionType));
+}
+
 function getReactionRef(targetType, postId, commentId) {
   return targetType === "comment"
     ? db.collection("posts").doc(postId).collection("comments").doc(commentId)
     : db.collection("posts").doc(postId);
 }
 
-async function addReaction(targetType, postId, commentId, reactionType) {
+async function toggleReaction(targetType, postId, commentId, reactionType) {
   const reaction = getStickerOption(reactionType);
   if (!reaction) return false;
-  if (hasReacted(targetType, postId, commentId, reaction.key)) return false;
 
   const ref = getReactionRef(targetType, postId, commentId);
+  const removing = hasReacted(targetType, postId, commentId, reaction.key);
 
   try {
-    await db.runTransaction(async (transaction) => {
+    const nextCount = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(ref);
       if (!snapshot.exists) throw new Error("이미 삭제된 글입니다.");
 
       const reactions = snapshot.data().reactions || {};
-      const nextCount = Number(reactions[reaction.key] || 0) + 1;
-      transaction.update(ref, {
-        [`reactions.${reaction.key}`]: nextCount
-      });
+      const currentCount = Number(reactions[reaction.key] || 0);
+      const updatedCount = removing ? Math.max(0, currentCount - 1) : currentCount + 1;
+      if (updatedCount !== currentCount) {
+        transaction.update(ref, {
+          [`reactions.${reaction.key}`]: updatedCount
+        });
+      }
+      return updatedCount;
     });
 
-    markReacted(targetType, postId, commentId, reaction.key);
-    return true;
+    if (removing) {
+      unmarkReacted(targetType, postId, commentId, reaction.key);
+    } else {
+      markReacted(targetType, postId, commentId, reaction.key);
+    }
+    return { active: !removing, count: nextCount };
   } catch (error) {
     console.error("반응 저장 실패:", error);
     alert(getFriendlyError(error));
@@ -548,24 +560,82 @@ function createReactionBar(targetType, postId, data, commentId = null) {
     const alreadyReacted = hasReacted(targetType, postId, commentId, reaction.key);
     button.type = "button";
     button.className = alreadyReacted ? "reaction-btn is-reacted" : "reaction-btn";
-    button.disabled = alreadyReacted;
     button.innerHTML = `
       <img src="${reaction.icon}" alt="" loading="lazy" onerror="this.hidden=true">
       <span class="reaction-label">${reaction.label}</span>
       <span class="reaction-count">${count}</span>
     `;
     button.setAttribute("aria-label", `${reaction.label} ${count}`);
+    button.setAttribute("aria-pressed", String(alreadyReacted));
     button.onclick = async () => {
       button.disabled = true;
-      const saved = await addReaction(targetType, postId, commentId, reaction.key);
-      if (!saved && !hasReacted(targetType, postId, commentId, reaction.key)) {
-        button.disabled = false;
+      const result = await toggleReaction(targetType, postId, commentId, reaction.key);
+      if (result) {
+        button.classList.toggle("is-reacted", result.active);
+        button.setAttribute("aria-pressed", String(result.active));
+        button.querySelector(".reaction-count").textContent = result.count;
+        button.setAttribute("aria-label", `${reaction.label} ${result.count}`);
       }
+      button.disabled = false;
     };
     bar.appendChild(button);
   });
 
   return bar;
+}
+
+function getVisitorDailyId(date = new Date()) {
+  return `daily-${getLocalDateKey(date)}`;
+}
+
+async function initVisitorStats() {
+  const todayCount = document.getElementById("todayVisitorCount");
+  const totalCount = document.getElementById("totalVisitorCount");
+  if (!todayCount || !totalCount) return;
+
+  const dailyId = getVisitorDailyId();
+  const totalRef = db.collection("siteStats").doc("summary");
+  const dailyRef = db.collection("siteStats").doc(dailyId);
+  const countedTotal = localStorage.getItem("positivityVisitor:counted") === "1";
+  const countedToday = localStorage.getItem("positivityVisitor:daily") === dailyId;
+
+  try {
+    const counts = await db.runTransaction(async (transaction) => {
+      const [totalSnapshot, dailySnapshot] = await Promise.all([
+        transaction.get(totalRef),
+        transaction.get(dailyRef)
+      ]);
+
+      let total = totalSnapshot.exists ? Number(totalSnapshot.data().count || 0) : 0;
+      let today = dailySnapshot.exists ? Number(dailySnapshot.data().count || 0) : 0;
+
+      if (!countedTotal) {
+        total += 1;
+        transaction.set(totalRef, {
+          count: total,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      if (!countedToday) {
+        today += 1;
+        transaction.set(dailyRef, {
+          count: today,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      return { total, today };
+    });
+
+    if (!countedTotal) localStorage.setItem("positivityVisitor:counted", "1");
+    if (!countedToday) localStorage.setItem("positivityVisitor:daily", dailyId);
+    totalCount.textContent = counts.total.toLocaleString("ko-KR");
+    todayCount.textContent = counts.today.toLocaleString("ko-KR");
+  } catch (error) {
+    console.error("방문자 통계 처리 실패:", error);
+    document.getElementById("visitorStats")?.classList.add("is-unavailable");
+  }
 }
 
 function submitPost() {
@@ -1061,6 +1131,7 @@ window.resetStickerPicker = resetStickerPicker;
 initDailyTopicCard();
 initAdminDashboard();
 initPostPickers();
+initVisitorStats();
 
 function createAuthorLabel(data) {
   const label = document.createElement("span");
