@@ -183,7 +183,7 @@ function toggleWriteForm(forceOpen) {
 
   const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.hidden;
   panel.hidden = !shouldOpen;
-  button.textContent = shouldOpen ? "글쓰기 닫기" : "글쓰기";
+  button.textContent = shouldOpen ? "마음 남기기 닫기" : "오늘 마음 남기기";
 
   if (shouldOpen) {
     document.getElementById("postTitleInput")?.focus();
