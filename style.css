@@ -594,9 +594,16 @@ select {
 }
 
 .sticker-choice img {
-  width: 26px;
-  height: 26px;
+  width: 29px;
+  height: 29px;
   object-fit: contain;
+}
+
+.sticker-picker .sticker-choice {
+  width: 45px;
+  min-width: 45px;
+  min-height: 45px;
+  padding: 6px;
 }
 
 .sticker-choice.is-selected {
