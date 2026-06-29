@@ -267,19 +267,14 @@ function createStickerPicker(targetType, selectedSticker = null) {
   label.textContent = "감정 스티커";
   picker.appendChild(label);
 
-  const clearBtn = document.createElement("button");
-  clearBtn.type = "button";
-  clearBtn.className = "sticker-choice";
-  clearBtn.dataset.sticker = "";
-  clearBtn.textContent = "선택 안 함";
-  picker.appendChild(clearBtn);
-
   STICKER_OPTIONS.forEach((option) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sticker-choice";
     button.dataset.sticker = option.key;
-    button.innerHTML = `<img src="${option.icon}" alt="" loading="lazy" onerror="this.hidden=true"> <span>${option.label}</span>`;
+    button.setAttribute("aria-label", option.label);
+    button.title = option.label;
+    button.innerHTML = `<img src="${option.icon}" alt="" loading="lazy" onerror="this.hidden=true">`;
     picker.appendChild(button);
   });
 
@@ -292,7 +287,9 @@ function createStickerPicker(targetType, selectedSticker = null) {
   picker.onclick = (event) => {
     const button = event.target.closest(".sticker-choice");
     if (!button || !picker.contains(button)) return;
-    picker.dataset.selectedSticker = button.dataset.sticker || "";
+    picker.dataset.selectedSticker = picker.dataset.selectedSticker === button.dataset.sticker
+      ? ""
+      : button.dataset.sticker;
     syncSelected();
   };
 
@@ -310,7 +307,7 @@ function resetStickerPicker(pickerId) {
   if (!picker) return;
   picker.dataset.selectedSticker = "";
   picker.querySelectorAll(".sticker-choice").forEach((button) => {
-    button.classList.toggle("is-selected", !button.dataset.sticker);
+    button.classList.remove("is-selected");
   });
 }
 
@@ -618,20 +615,18 @@ function submitComment(postId) {
   const authorInput = document.getElementById(`commentAuthorInput-${postId}`);
   const input = document.getElementById(`commentInput-${postId}`);
   const content = input ? input.value.trim() : "";
-  const sticker = getSelectedSticker(`commentStickerPicker-${postId}`);
   const author = getAuthorNameFromInput(authorInput, user);
 
   if (!content) return alert("댓글을 입력해주세요.");
 
   db.collection("posts").doc(postId).collection("comments").add({
     content,
-    sticker,
+    sticker: null,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: null,
     ...buildAuthorPayload(author, user)
   }).then(() => {
     input.value = "";
-    resetStickerPicker(`commentStickerPicker-${postId}`);
     if (authorInput) authorInput.value = user && user.displayName ? user.displayName : "";
   }).catch((error) => {
     console.error("댓글 저장 실패:", error);
@@ -955,13 +950,6 @@ function renderPostRow(post, index, tableBody) {
 
     form.appendChild(authorInput);
     form.appendChild(createToneStyleField(`commentToneStyleSelect-${postId}`));
-    const commentEmojiPicker = createEmojiPicker(`commentInput-${postId}`);
-    commentEmojiPicker.classList.add("comment-emoji-picker");
-    form.appendChild(commentEmojiPicker);
-    const commentStickerPicker = createStickerPicker("comment");
-    commentStickerPicker.id = `commentStickerPicker-${postId}`;
-    commentStickerPicker.classList.add("comment-sticker-picker");
-    form.appendChild(commentStickerPicker);
     form.appendChild(input);
     form.appendChild(submitBtn);
 
