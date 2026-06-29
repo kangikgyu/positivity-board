@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>고민 게시판 in 익규 유니버스</title>
-  <link rel="stylesheet" href="style.css?v=20260629-2">
+  <link rel="stylesheet" href="style.css?v=20260629-3">
   <link rel="stylesheet" href="admin-author.css?v=20260622-1">
   <link rel="stylesheet" href="header-mascot.css?v=20260620-3">
   <link rel="stylesheet" href="robot-polisher.css?v=20260624-1">
@@ -45,6 +45,9 @@
         </div>
       </div>
       <div class="auth-area">
+        <p id="visitorStats" class="visitor-stats" aria-live="polite">
+          오늘 <strong id="todayVisitorCount">-</strong>명 · 누적 <strong id="totalVisitorCount">-</strong>명
+        </p>
         <div id="userInfo" class="user-info"></div>
         <div class="auth-buttons">
           <button id="loginBtn" onclick="login()">운영자 공간</button>
@@ -128,7 +131,7 @@
   </main>
 
   <script src="background.js?v=20260620-3"></script>
-  <script src="script.js?v=20260629-2"></script>
+  <script src="script.js?v=20260629-3"></script>
   <script src="robot-polisher.js?v=20260629-1"></script>
 </body>
 </html>

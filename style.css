@@ -294,6 +294,26 @@ h1 span {
   min-width: 190px;
 }
 
+.visitor-stats {
+  margin: 0;
+  padding: 5px 10px;
+  border: 1px solid #c7e2e7;
+  border-radius: 999px;
+  background: #f4fbfc;
+  color: #54757c;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.visitor-stats strong {
+  color: #176b79;
+  font-weight: 900;
+}
+
+.visitor-stats.is-unavailable {
+  display: none;
+}
+
 .user-info {
   display: flex;
   align-items: center;
