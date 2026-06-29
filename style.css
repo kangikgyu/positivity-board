@@ -226,6 +226,10 @@ button:disabled {
   min-width: 0;
 }
 
+.brand-lockup > div:last-child {
+  max-width: 320px;
+}
+
 .brand-mark {
   display: grid;
   flex: 0 0 auto;
@@ -244,7 +248,7 @@ button:disabled {
 }
 
 .eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   color: #f97316;
   font-size: 0.72rem;
   font-weight: 900;
@@ -255,9 +259,9 @@ button:disabled {
 h1 {
   margin: 0;
   color: #115e6f;
-  font-size: 1.55rem;
+  font-size: 1.62rem;
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.14;
 }
 
 h1 span {
@@ -265,9 +269,10 @@ h1 span {
 }
 
 .subtitle {
-  margin: 5px 0 0;
+  margin: 8px 0 0;
   color: #516d73;
   font-size: 0.9rem;
+  line-height: 1.42;
 }
 
 .trust-badge {
@@ -1050,12 +1055,13 @@ textarea {
 
 @media screen and (max-width: 640px) {
   h1 {
-    font-size: 1.28rem;
-    line-height: 1.22;
+    font-size: 1.36rem;
+    line-height: 1.2;
   }
 
   .subtitle {
     font-size: 0.82rem;
+    line-height: 1.48;
   }
 
   .comment-form {
